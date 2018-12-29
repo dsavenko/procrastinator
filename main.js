@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* global moreBut, titleCont, imgTag, textCont */
+/* global moreBut, entryBut, titleCont, imgTag, textCont */
 
 'use strict'
 
@@ -51,6 +51,7 @@ function setEntry(e) {
     titleCont.innerText = e.title || ''
     imgTag.src = e.imageUrl || ''
     textCont.innerText = e.text || ''
+    entryBut.dataset.url = e.url || ''
 }
 
 function pickEntry() {
@@ -61,4 +62,12 @@ function onMoreButClick() {
     setEntry(pickEntry())
 }
 
+function onEntryButClick() {
+    const url = entryBut.dataset.url
+    if (url) {
+        window.open(url, '_blank')
+    }
+}
+
 moreBut.onclick = onMoreButClick
+entryBut.onclick = onEntryButClick

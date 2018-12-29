@@ -27,20 +27,42 @@
             letter-spacing: 0.2em;
             cursor: pointer;
         }
+        .entry {
+            max-width: 80%;
+            margin: 0 auto;
+            cursor: pointer;
+        }
+        .title {
+            padding: 0.5em;
+            font-size: 1.2em;
+            text-align: center;
+            font-weight: bold;
+        }
+        .img {
+            text-align: center;
+        }
+        .img img {
+            max-width: 70%;
+        }
+        .text {
+            padding: 0.5em;
+        }
     </style>
 </head>
 <body>
     <div id="moreBut" class="more">
         ДАЛЬШЕ
     </div>
-    <div id="titleCont" class="title">
-        Кремль опроверг данные о военнопленных в России
-    </div>
-    <div class="img">
-        <img id="imgTag" src="http://icdn.lenta.ru/images/2018/12/28/13/20181228130048792/pic_f558bf88b16efec6b5eaa9f43f5767f1.jpg"/>
-    </div>
-    <div id="textCont" class="text">
-        Военнопленных в России нет, не являются ими и задержанные близ Керченского пролива украинские моряки, заявил представитель Кремля Дмитрий Песков. Песков выразил несогласие с формулировкой военнопленные в вопросе о нарушении российской границы украинцами. Он подчеркнул, что речь идет о фигурантах уголовного дела.
+    <div id="entryBut" class="entry" data-url="https://google.com">
+        <div id="titleCont" class="title">
+            Кремль опроверг данные о военнопленных в России
+        </div>
+        <div class="img">
+            <img id="imgTag" src="http://icdn.lenta.ru/images/2018/12/28/13/20181228130048792/pic_f558bf88b16efec6b5eaa9f43f5767f1.jpg"/>
+        </div>
+        <div id="textCont" class="text">
+            Военнопленных в России нет, не являются ими и задержанные близ Керченского пролива украинские моряки, заявил представитель Кремля Дмитрий Песков. Песков выразил несогласие с формулировкой военнопленные в вопросе о нарушении российской границы украинцами. Он подчеркнул, что речь идет о фигурантах уголовного дела.
+        </div>
     </div>
     <script src="rss-parser.min.js"></script>
     <script src="main.js"></script>
