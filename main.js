@@ -30,21 +30,24 @@ const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/'
 
 let entries = []
 
-let parser = new RSSParser()
-parser.parseURL(CORS_PROXY + 'https://lenta.ru/rss', (err, feed) => {
-    if (err) {
-        console.log('Failed to load Lenta entries', err)
-        return
-    }
+async function loadLentaEntries() {
+    let parser = new RSSParser()
+    const feed = await parser.parseURL(CORS_PROXY + 'https://lenta.ru/rss')
+    let ret = []
     feed.items.forEach(e => {
-        entries.push({
+        ret.push({
             title: e.title,
             text: e.contentSnippet,
             imageUrl: e.enclosure.url,
             url: e.link
         })
     })
-})
+    return ret
+}
+
+function loadEntries() {
+    loadLentaEntries().then(ret => entries = ret).catch(e => console.log('Failed to load entries', e))
+}
 
 function setEntry(e) {
     e = e || {}
@@ -71,3 +74,5 @@ function onEntryButClick() {
 
 moreBut.onclick = onMoreButClick
 entryBut.onclick = onEntryButClick
+
+loadEntries()
