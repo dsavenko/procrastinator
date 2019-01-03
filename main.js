@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* global moreBut, entryBut, titleCont, imgTag, textCont */
+/* global $, moreBut, entryBut, titleCont, imgTag, textCont */
 
 'use strict'
 
@@ -30,23 +30,57 @@ const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/'
 
 let entries = []
 
+function shuffle(a) {
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
 async function loadLentaEntries() {
-    let parser = new RSSParser()
-    const feed = await parser.parseURL(CORS_PROXY + 'https://lenta.ru/rss')
-    let ret = []
-    feed.items.forEach(e => {
-        ret.push({
-            title: e.title,
-            text: e.contentSnippet,
-            imageUrl: e.enclosure.url,
-            url: e.link
+    try {
+        const parser = new RSSParser()
+        const feed = await parser.parseURL(CORS_PROXY + 'https://lenta.ru/rss')
+        const lentaEntries = feed.items.map(e => {
+            return {
+                title: e.title,
+                text: e.contentSnippet,
+                imageUrl: e.enclosure.url,
+                url: e.link
+            }
         })
-    })
-    return ret
+        entries = entries.concat(lentaEntries)
+        shuffle(entries)
+        console.log('Loaded Lenta entries')
+    } catch(e) {
+        console.log('Failed to load Lenta entries', e)
+    }
+}
+
+async function loadLJEntries() {
+    try {
+        const html = await $.ajax(CORS_PROXY + 'https://top.artlebedev.ru/')
+        const items = $('.posts .item', $(html))
+        const ljEntries = items.map(function() {
+            return {
+                title: $('.title a', this).first().text() + ' — ' + $('.title .lj-user a', this).last().text(),
+                text: $('.p', this).text(),
+                imageUrl: $('.image img', this).attr('src'),
+                url: $('.title a', this).first().attr('href')
+            }
+        }).get()
+        entries = entries.concat(ljEntries)
+        shuffle(entries)
+        console.log('Loaded LJ entries')
+    } catch(e) {
+        console.log('Failed to load LJ entries', e)
+    }
 }
 
 function loadEntries() {
-    loadLentaEntries().then(ret => entries = ret).catch(e => console.log('Failed to load entries', e))
+    loadLentaEntries()
+    loadLJEntries()
 }
 
 function setEntry(e) {
