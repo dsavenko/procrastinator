@@ -20,7 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-/* global $, moreBut, entryBut, titleCont, imgTag, textCont */
+/* global $, moreBut, entryBut, titleCont, imgTag, textCont, settingsBut, settingsCont */
 
 'use strict'
 
@@ -116,7 +116,17 @@ function onEntryButClick() {
     }
 }
 
+function onSettingsButClick() {
+    $(settingsCont).toggleClass('hidden')
+}
+
+function onToggleButClick(e) {
+    $(this).find('img').toggleClass('hidden')
+}
+
 moreBut.onclick = onMoreButClick
 entryBut.onclick = onEntryButClick
+settingsBut.onclick = onSettingsButClick
+$('#settingsCont .toggle').click(onToggleButClick)
 
 loadEntries()

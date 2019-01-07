@@ -18,14 +18,34 @@
             margin: 0;
             box-sizing: border-box;
         }
-        .more {
+        .flex {
+            display: flex;
+        }
+        .flex.center {
+            justify-content: center;
+        }
+        .flex.middle {
+            align-items: center;
+        }
+        .ribbon {
             margin: 0;
             background-color: #FF4136;
+        }
+        .ribbon div {
             padding: 1em;
             font-size: 1.5em;
             text-align: center;
-            letter-spacing: 0.2em;
             cursor: pointer;
+        }
+        .ribbon.center {
+            justify-content: center;
+        }
+        .more {
+            flex-grow: 1;
+            letter-spacing: 0.2em;
+        }
+        .ribbon img {
+            height: 1em;
         }
         .entry {
             max-width: 80%;
@@ -47,11 +67,36 @@
         .text {
             padding: 0.5em;
         }
+        .invisible {
+            visibility: hidden;
+        }
+        .hidden {
+            display: none;
+        }
+        img.checkbox {
+            margin-right: 0.3em;
+        }
     </style>
 </head>
 <body>
-    <div id="moreBut" class="more">
-        ДАЛЬШЕ
+    <div class="ribbon flex">
+        <div class="settings invisible"> <!-- to center the More button -->
+            <img src="settings.svg">
+        </div>
+        <div id="moreBut" class="more">
+            ДАЛЬШЕ
+        </div>
+        <div id="settingsBut" class="settings">
+            <img src="settings.svg">
+        </div>
+    </div>
+    <div id="settingsCont" class="ribbon flex center hidden">
+        <div class="flex middle toggle lenta">
+            <img class="checkbox" src="checked.svg"><img class="checkbox hidden" src="unchecked.svg"> Lenta
+        </div>
+        <div class="flex middle toggle lj">
+            <img class="checkbox" src="checked.svg"><img class="checkbox hidden" src="unchecked.svg"> Топ ЖЖ
+        </div>
     </div>
     <div id="entryBut" class="entry" data-url="https://google.com">
         <div id="titleCont" class="title">
