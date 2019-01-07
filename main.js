@@ -32,7 +32,7 @@ const SOURCES = ['lenta', 'lj']
 let entries = []
 let firstEntryLoaded = false
 let settings = {
-    lenta: false,
+    lenta: true,
     lj: true
 }
 
