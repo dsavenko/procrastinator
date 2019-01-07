@@ -27,9 +27,14 @@ SOFTWARE.
 // Note: some RSS feeds can't be loaded in the browser due to CORS security.
 // To get around this, you can use a proxy.
 const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/'
+const SOURCES = ['lenta', 'lj']
 
 let entries = []
 let firstEntryLoaded = false
+let settings = {
+    lenta: false,
+    lj: true
+}
 
 function shuffle(a) {
     for (let i = a.length - 1; i > 0; i--) {
@@ -48,7 +53,8 @@ async function loadLentaEntries() {
                 title: e.title,
                 text: e.contentSnippet,
                 imageUrl: e.enclosure.url,
-                url: e.link
+                url: e.link,
+                source: 'lenta'
             }
         })
         entries = entries.concat(lentaEntries)
@@ -69,7 +75,8 @@ async function loadLJEntries() {
                 title: $('.title a', this).first().text() + ' — ' + $('.title .lj-user a', this).last().text(),
                 text: $('.p', this).text(),
                 imageUrl: $('.image img', this).attr('src'),
-                url: $('.title a', this).first().attr('href')
+                url: $('.title a', this).first().attr('href'),
+                source: 'lj'
             }
         }).get()
         entries = entries.concat(ljEntries)
@@ -120,8 +127,22 @@ function onSettingsButClick() {
     $(settingsCont).toggleClass('hidden')
 }
 
+function syncSourceBut(source) {
+    $(`#settingsCont [data-source="${source}"] img`).attr('src', settings[source] ? 'checked.svg' : 'unchecked.svg')
+}
+
+function syncSettingsUI() {
+    for (const source of SOURCES) {
+        syncSourceBut(source)
+    }
+}
+
 function onToggleButClick() {
-    $(this).find('img').toggleClass('hidden')
+    const source = $(this).data('source')
+    if (typeof settings[source] !== undefined) {
+        settings[source] = !settings[source]
+    }
+    syncSettingsUI()
 }
 
 moreBut.onclick = onMoreButClick
@@ -129,4 +150,5 @@ entryBut.onclick = onEntryButClick
 settingsBut.onclick = onSettingsButClick
 $('#settingsCont .toggle').click(onToggleButClick)
 
+syncSettingsUI()
 loadEntries()
