@@ -120,7 +120,7 @@ function onSettingsButClick() {
     $(settingsCont).toggleClass('hidden')
 }
 
-function onToggleButClick(e) {
+function onToggleButClick() {
     $(this).find('img').toggleClass('hidden')
 }
 
