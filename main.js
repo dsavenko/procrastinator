@@ -29,6 +29,7 @@ SOFTWARE.
 const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/'
 
 let entries = []
+let firstEntryLoaded = false
 
 function shuffle(a) {
     for (let i = a.length - 1; i > 0; i--) {
@@ -53,6 +54,7 @@ async function loadLentaEntries() {
         entries = entries.concat(lentaEntries)
         shuffle(entries)
         console.log('Loaded Lenta entries')
+        loadFirstEntry()
     } catch(e) {
         console.log('Failed to load Lenta entries', e)
     }
@@ -73,6 +75,7 @@ async function loadLJEntries() {
         entries = entries.concat(ljEntries)
         shuffle(entries)
         console.log('Loaded LJ entries')
+        loadFirstEntry()
     } catch(e) {
         console.log('Failed to load LJ entries', e)
     }
@@ -97,6 +100,13 @@ function pickEntry() {
 
 function onMoreButClick() {
     setEntry(pickEntry())
+}
+
+function loadFirstEntry() {
+    if (!firstEntryLoaded && 0 < entries.length) {
+        onMoreButClick()
+        firstEntryLoaded = true
+    }
 }
 
 function onEntryButClick() {
