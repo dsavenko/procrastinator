@@ -172,7 +172,19 @@ function onToggleButClick() {
         } else {
             entries = entries.filter(e => e.source != source)
         }
+        saveSettings()
         syncSettingsUI()
+    }
+}
+
+function saveSettings() {
+    localStorage.setItem('settings', JSON.stringify(settings))
+}
+
+function loadSettings() {
+    const raw = localStorage.getItem('settings')
+    if (raw) {
+        settings = JSON.parse(raw)
     }
 }
 
@@ -181,5 +193,6 @@ entryBut.onclick = onEntryButClick
 settingsBut.onclick = onSettingsButClick
 $('#settingsCont .toggle').click(onToggleButClick)
 
+loadSettings()
 syncSettingsUI()
 loadEntries()
