@@ -28,8 +28,15 @@ SOFTWARE.
 // To get around this, you can use a proxy.
 const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/'
 const SOURCES = ['lenta', 'lj']
+const LOAD_FUNC = {
+    lenta: loadLentaEntries,
+    lj: loadLJEntries
+}
+const NOTHING_ENTRY = {title: 'Больше ничего нет :('}
+const LOADING_ENTRY = {title: 'Загружаю...'}
 
 let entries = []
+let currentEntry = {}
 let firstEntryLoaded = false
 let settings = {
     lenta: true,
@@ -45,9 +52,15 @@ function shuffle(a) {
 }
 
 async function loadLentaEntries() {
+    if (!settings.lenta) {
+        return
+    }
     try {
         const parser = new RSSParser()
         const feed = await parser.parseURL(CORS_PROXY + 'https://lenta.ru/rss')
+        if (!settings.lenta) {
+            return
+        }
         const lentaEntries = feed.items.map(e => {
             return {
                 title: e.title,
@@ -67,8 +80,14 @@ async function loadLentaEntries() {
 }
 
 async function loadLJEntries() {
+    if (!settings.lj) {
+        return
+    }
     try {
         const html = await $.ajax(CORS_PROXY + 'https://top.artlebedev.ru/')
+        if (!settings.lj) {
+            return
+        }
         const items = $('.posts .item', $(html))
         const ljEntries = items.map(function() {
             return {
@@ -102,7 +121,11 @@ function setEntry(e) {
 }
 
 function pickEntry() {
-    return 0 == entries.length ? {title: 'Больше ничего нет :('} : entries.shift()
+    currentEntry = 0 == entries.length ? NOTHING_ENTRY : entries.shift()
+    if (0 == entries.length) {
+        firstEntryLoaded = false
+    }
+    return currentEntry
 }
 
 function onMoreButClick() {
@@ -141,8 +164,16 @@ function onToggleButClick() {
     const source = $(this).data('source')
     if (typeof settings[source] !== undefined) {
         settings[source] = !settings[source]
+        if (settings[source]) {
+            if (!currentEntry.url) {
+                setEntry(LOADING_ENTRY)
+            }
+            LOAD_FUNC[source].call()
+        } else {
+            entries = entries.filter(e => e.source != source)
+        }
+        syncSettingsUI()
     }
-    syncSettingsUI()
 }
 
 moreBut.onclick = onMoreButClick
