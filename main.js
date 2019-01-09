@@ -32,13 +32,15 @@ const LOAD_FUNC = {
     meduza: loadMeduzaEntries,
     habr: loadHabrEntries
 }
-const NOTHING_ENTRY = {title: 'Больше ничего нет :('}
+const NOTHING_ENTRY = {
+    title: 'Больше ничего нет :(',
+    text: 'Включите дополнительные ресурсы в настройках, или зайдите позже'
+}
 const LOADING_ENTRY = {title: 'Загружаю...'}
 const MAX_SHOWN_LENGTH = 500
 
 let entries = []
 let currentEntry = {}
-let firstEntryLoaded = false
 let settings = {
     lenta: true,
     lj: true,
@@ -56,9 +58,12 @@ function shuffle(a) {
 }
 
 function addEntries(newEntries) {
+    const old = entries.length
     entries = entries.concat(newEntries.filter(e => !shown.includes(e.url)))
+    const ret = entries.length - old
     shuffle(entries)
     loadFirstEntry()
+    return ret
 }
 
 async function loadRssSource(name, url) {
@@ -85,8 +90,8 @@ async function loadRssSource(name, url) {
                 source: name
             }
         })
-        addEntries(newEntries)
-        console.log(`Loaded ${name} entries`)
+        const len = addEntries(newEntries)
+        console.log(`Added ${len} ${name} entries`)
     } catch(e) {
         console.log(`Failed to load ${name} entries`, e)
     }
@@ -123,8 +128,8 @@ async function loadLJEntries() {
                 source: 'lj'
             }
         }).get()
-        addEntries(ljEntries)
-        console.log('Loaded LJ entries')
+        const len = addEntries(ljEntries)
+        console.log(`Added ${len} LJ entries`)
     } catch(e) {
         console.log('Failed to load LJ entries', e)
     }
@@ -147,9 +152,6 @@ function pickEntry() {
         currentEntry = NOTHING_ENTRY
     } else {
         currentEntry = entries.shift()
-        if (0 >= entries.length) {
-            firstEntryLoaded = false
-        }
         shown.push(currentEntry.url)
         while (MAX_SHOWN_LENGTH < shown.length) {
             shown.shift()
@@ -164,9 +166,8 @@ function onMoreButClick() {
 }
 
 function loadFirstEntry() {
-    if (!firstEntryLoaded && 0 < entries.length) {
+    if (!currentEntry.url) {
         onMoreButClick()
-        firstEntryLoaded = true
     }
 }
 
