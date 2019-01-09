@@ -4,13 +4,14 @@
 'use strict'
 
 const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/'
-const SOURCES = ['lenta', 'lj', 'meduza', 'habr', 'adme']
+const SOURCES = ['lenta', 'lj', 'meduza', 'habr', 'adme', 'lor']
 const LOAD_FUNC = {
     lenta: loadLentaEntries,
     lj: loadLJEntries,
     meduza: loadMeduzaEntries,
+    adme: loadAdmeEntries,
     habr: loadHabrEntries,
-    adme: loadAdmeEntries
+    lor: loadLorEntries
 }
 const NOTHING_ENTRY = {
     title: 'Больше ничего нет :(',
@@ -25,8 +26,9 @@ let settings = {
     lenta: true,
     lj: true,
     meduza: true,
+    adme: true,
     habr: false,
-    adme: true
+    lor: false
 }
 let shown = []
 
@@ -47,6 +49,11 @@ function addEntries(newEntries) {
     return ret
 }
 
+function htmlDecode(value) {
+    return $('<textarea/>').html(value).text()
+}
+
+
 async function loadRssSource(name, url) {
     if (!settings[name]) {
         return
@@ -64,8 +71,8 @@ async function loadRssSource(name, url) {
                 imageUrl = $('img', tmpDom).attr('src')
             }
             return {
-                title: e.title,
-                text: e.contentSnippet,
+                title: htmlDecode(e.title),
+                text: htmlDecode(e.contentSnippet),
                 imageUrl: imageUrl,
                 url: e.link,
                 source: name
@@ -92,6 +99,10 @@ async function loadHabrEntries() {
 
 async function loadAdmeEntries() {
     loadRssSource('adme', 'https://www.adme.ru/rss')
+}
+
+async function loadLorEntries() {
+    loadRssSource('lor', 'https://www.linux.org.ru/section-rss.jsp')
 }
 
 async function loadLJEntries() {
