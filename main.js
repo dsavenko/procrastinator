@@ -4,12 +4,13 @@
 'use strict'
 
 const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/'
-const SOURCES = ['lenta', 'lj', 'meduza', 'habr']
+const SOURCES = ['lenta', 'lj', 'meduza', 'habr', 'adme']
 const LOAD_FUNC = {
     lenta: loadLentaEntries,
     lj: loadLJEntries,
     meduza: loadMeduzaEntries,
-    habr: loadHabrEntries
+    habr: loadHabrEntries,
+    adme: loadAdmeEntries
 }
 const NOTHING_ENTRY = {
     title: 'Больше ничего нет :(',
@@ -24,7 +25,8 @@ let settings = {
     lenta: true,
     lj: true,
     meduza: true,
-    habr: false
+    habr: false,
+    adme: true
 }
 let shown = []
 
@@ -86,6 +88,10 @@ async function loadMeduzaEntries() {
 
 async function loadHabrEntries() {
     loadRssSource('habr', 'https://habr.com/rss/best/daily')
+}
+
+async function loadAdmeEntries() {
+    loadRssSource('adme', 'https://www.adme.ru/rss')
 }
 
 async function loadLJEntries() {
