@@ -25,10 +25,11 @@ SOFTWARE.
 'use strict'
 
 const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/'
-const SOURCES = ['lenta', 'lj']
+const SOURCES = ['lenta', 'lj', 'meduza']
 const LOAD_FUNC = {
     lenta: loadLentaEntries,
-    lj: loadLJEntries
+    lj: loadLJEntries,
+    meduza: loadMeduzaEntries
 }
 const NOTHING_ENTRY = {title: 'Больше ничего нет :('}
 const LOADING_ENTRY = {title: 'Загружаю...'}
@@ -39,7 +40,8 @@ let currentEntry = {}
 let firstEntryLoaded = false
 let settings = {
     lenta: true,
-    lj: true
+    lj: true,
+    meduza: true
 }
 let shown = []
 
@@ -57,30 +59,38 @@ function addEntries(newEntries) {
     loadFirstEntry()
 }
 
-async function loadLentaEntries() {
-    if (!settings.lenta) {
+async function loadRssSource(name, url) {
+    if (!settings[name]) {
         return
     }
     try {
         const parser = new RSSParser()
-        const feed = await parser.parseURL(CORS_PROXY + 'https://lenta.ru/rss')
-        if (!settings.lenta) {
+        const feed = await parser.parseURL(CORS_PROXY + url)
+        if (!settings[name]) {
             return
         }
-        const lentaEntries = feed.items.map(e => {
+        const newEntries = feed.items.map(e => {
             return {
                 title: e.title,
                 text: e.contentSnippet,
                 imageUrl: e.enclosure.url,
                 url: e.link,
-                source: 'lenta'
+                source: name
             }
         })
-        addEntries(lentaEntries)
-        console.log('Loaded Lenta entries')
+        addEntries(newEntries)
+        console.log(`Loaded ${name} entries`)
     } catch(e) {
-        console.log('Failed to load Lenta entries', e)
+        console.log(`Failed to load ${name} entries`, e)
     }
+}
+
+async function loadLentaEntries() {
+    loadRssSource('lenta', 'https://lenta.ru/rss')
+}
+
+async function loadMeduzaEntries() {
+    loadRssSource('meduza', 'https://meduza.io/rss/all')
 }
 
 async function loadLJEntries() {
@@ -110,8 +120,7 @@ async function loadLJEntries() {
 }
 
 function loadEntries() {
-    loadLentaEntries()
-    loadLJEntries()
+    Object.values(LOAD_FUNC).forEach(f => f.call())
 }
 
 function setEntry(e) {
