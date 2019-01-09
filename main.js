@@ -24,8 +24,6 @@ SOFTWARE.
 
 'use strict'
 
-// Note: some RSS feeds can't be loaded in the browser due to CORS security.
-// To get around this, you can use a proxy.
 const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/'
 const SOURCES = ['lenta', 'lj']
 const LOAD_FUNC = {
@@ -34,6 +32,7 @@ const LOAD_FUNC = {
 }
 const NOTHING_ENTRY = {title: 'Больше ничего нет :('}
 const LOADING_ENTRY = {title: 'Загружаю...'}
+const MAX_SHOWN_LENGTH = 500
 
 let entries = []
 let currentEntry = {}
@@ -42,6 +41,7 @@ let settings = {
     lenta: true,
     lj: true
 }
+let shown = []
 
 function shuffle(a) {
     for (let i = a.length - 1; i > 0; i--) {
@@ -49,6 +49,12 @@ function shuffle(a) {
         [a[i], a[j]] = [a[j], a[i]];
     }
     return a;
+}
+
+function addEntries(newEntries) {
+    entries = entries.concat(newEntries.filter(e => !shown.includes(e.url)))
+    shuffle(entries)
+    loadFirstEntry()
 }
 
 async function loadLentaEntries() {
@@ -70,10 +76,8 @@ async function loadLentaEntries() {
                 source: 'lenta'
             }
         })
-        entries = entries.concat(lentaEntries)
-        shuffle(entries)
+        addEntries(lentaEntries)
         console.log('Loaded Lenta entries')
-        loadFirstEntry()
     } catch(e) {
         console.log('Failed to load Lenta entries', e)
     }
@@ -98,10 +102,8 @@ async function loadLJEntries() {
                 source: 'lj'
             }
         }).get()
-        entries = entries.concat(ljEntries)
-        shuffle(entries)
+        addEntries(ljEntries)
         console.log('Loaded LJ entries')
-        loadFirstEntry()
     } catch(e) {
         console.log('Failed to load LJ entries', e)
     }
@@ -121,9 +123,18 @@ function setEntry(e) {
 }
 
 function pickEntry() {
-    currentEntry = 0 == entries.length ? NOTHING_ENTRY : entries.shift()
-    if (0 == entries.length) {
-        firstEntryLoaded = false
+    if (0 >= entries.length) {
+        currentEntry = NOTHING_ENTRY
+    } else {
+        currentEntry = entries.shift()
+        if (0 >= entries.length) {
+            firstEntryLoaded = false
+        }
+        shown.push(currentEntry.url)
+        while (MAX_SHOWN_LENGTH < shown.length) {
+            shown.shift()
+        }
+        saveShown()
     }
     return currentEntry
 }
@@ -177,15 +188,29 @@ function onToggleButClick() {
     }
 }
 
+function save(key, value) {
+    localStorage.setItem(key, JSON.stringify(value))
+}
+
+function load(key, defVal) {
+    const raw = localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : defVal
+}
+
 function saveSettings() {
-    localStorage.setItem('settings', JSON.stringify(settings))
+    save('settings', settings)
 }
 
 function loadSettings() {
-    const raw = localStorage.getItem('settings')
-    if (raw) {
-        settings = JSON.parse(raw)
-    }
+    settings = load('settings', settings)
+}
+
+function saveShown() {
+    save('shown', shown)
+}
+
+function loadShown() {
+    shown = load('shown', shown)
 }
 
 moreBut.onclick = onMoreButClick
@@ -194,5 +219,6 @@ settingsBut.onclick = onSettingsButClick
 $('#settingsCont .toggle').click(onToggleButClick)
 
 loadSettings()
+loadShown()
 syncSettingsUI()
 loadEntries()
