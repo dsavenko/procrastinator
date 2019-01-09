@@ -18,7 +18,7 @@ const NOTHING_ENTRY = {
     text: 'Включите дополнительные ресурсы в настройках, или зайдите позже'
 }
 const LOADING_ENTRY = {title: 'Загружаю...'}
-const MAX_SHOWN_LENGTH = 500
+const MAX_SHOWN_LENGTH = 1000
 
 let entries = []
 let currentEntry = {}
