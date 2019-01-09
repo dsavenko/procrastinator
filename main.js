@@ -25,11 +25,12 @@ SOFTWARE.
 'use strict'
 
 const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/'
-const SOURCES = ['lenta', 'lj', 'meduza']
+const SOURCES = ['lenta', 'lj', 'meduza', 'habr']
 const LOAD_FUNC = {
     lenta: loadLentaEntries,
     lj: loadLJEntries,
-    meduza: loadMeduzaEntries
+    meduza: loadMeduzaEntries,
+    habr: loadHabrEntries
 }
 const NOTHING_ENTRY = {title: 'Больше ничего нет :('}
 const LOADING_ENTRY = {title: 'Загружаю...'}
@@ -41,7 +42,8 @@ let firstEntryLoaded = false
 let settings = {
     lenta: true,
     lj: true,
-    meduza: true
+    meduza: true,
+    habr: true
 }
 let shown = []
 
@@ -70,10 +72,15 @@ async function loadRssSource(name, url) {
             return
         }
         const newEntries = feed.items.map(e => {
+            let imageUrl = (e.enclosure || {}).url
+            if (!imageUrl) {
+                const tmpDom = $('<div>').append($.parseHTML(e.content))
+                imageUrl = $('img', tmpDom).attr('src')
+            }
             return {
                 title: e.title,
                 text: e.contentSnippet,
-                imageUrl: e.enclosure.url,
+                imageUrl: imageUrl,
                 url: e.link,
                 source: name
             }
@@ -91,6 +98,10 @@ async function loadLentaEntries() {
 
 async function loadMeduzaEntries() {
     loadRssSource('meduza', 'https://meduza.io/rss/all')
+}
+
+async function loadHabrEntries() {
+    loadRssSource('habr', 'https://habr.com/rss/best/daily')
 }
 
 async function loadLJEntries() {
