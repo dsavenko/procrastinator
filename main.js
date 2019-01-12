@@ -239,7 +239,7 @@ async function loadShown() {
 function initStorage() {
     remoteStorage.access.claim('procrastinator', 'rw')
     remoteStorage.caching.enable('/procrastinator/')
-    const widget = new Widget(remoteStorage)
+    const widget = new Widget(remoteStorage, {leaveOpen: true})
     widget.attach('loginHolder')
 }
 
