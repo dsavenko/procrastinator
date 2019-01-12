@@ -41,10 +41,9 @@
             -ms-user-select: none; /* Internet Explorer/Edge */
             user-select: none; 
         }
-        .ribbon div {
+        .ribbon > div {
             padding: 1em;
             font-size: 1.5em;
-            text-align: center;
             cursor: pointer;
         }
         .ribbon.center {
@@ -53,6 +52,7 @@
         .more {
             flex-grow: 1;
             letter-spacing: 0.2em;
+            text-align: center;
         }
         .ribbon img {
             height: 1em;
@@ -135,6 +135,9 @@
             <img class="checkbox" src="checked.svg"> LOR
         </div>
     </div>
+    <div id="loginCont" class="ribbon flex wrap center hidden">
+        <div id='loginHolder'></div>
+    </div>
     <div id="entryBut" class="entry" data-url="https://google.com">
         <div id="titleCont" class="title">
             Загружаю...
@@ -147,6 +150,8 @@
     </div>
     <script src="rss-parser.min.js"></script>
     <script src="jquery.min.js"></script>
+    <script src="remotestorage.js"></script>
+    <script src="widget.js"></script>
     <script src="main.js"></script>
 </body>
 </html>

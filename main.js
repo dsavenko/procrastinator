@@ -31,6 +31,7 @@ let settings = {
     lor: false
 }
 let shown = []
+const remoteStorage = new RemoteStorage()
 
 function shuffle(a) {
     for (let i = a.length - 1; i > 0; i--) {
@@ -176,6 +177,7 @@ function onEntryButClick() {
 
 function onSettingsButClick() {
     $(settingsCont).toggleClass('hidden')
+    $(loginCont).toggleClass('hidden')
 }
 
 function syncSourceBut(source) {
@@ -205,29 +207,40 @@ function onToggleButClick() {
     }
 }
 
-function save(key, value) {
-    localStorage.setItem(key, JSON.stringify(value))
+async function save(key, value) {
+    const client = remoteStorage.scope('/procrastinator/')
+    client.storeFile('application/json', `${key}.json`, JSON.stringify(value))
+        .then(() => console.log(`Saved ${key}`))
+        .catch(e => console.log(`Failed to save ${key}`, e))
 }
 
-function load(key, defVal) {
-    const raw = localStorage.getItem(key)
-    return raw ? JSON.parse(raw) : defVal
+async function load(key, defVal) {
+    const client = remoteStorage.scope('/procrastinator/')
+    const file = await client.getFile(`${key}.json`)
+    return file && file.data ? JSON.parse(file.data) : defVal
 }
 
-function saveSettings() {
+async function saveSettings() {
     save('settings', settings)
 }
 
-function loadSettings() {
-    settings = load('settings', settings)
+async function loadSettings() {
+    settings = await load('settings', settings)
 }
 
-function saveShown() {
+async function saveShown() {
     save('shown', shown)
 }
 
-function loadShown() {
-    shown = load('shown', shown)
+async function loadShown() {
+    shown = await load('shown', shown)
+}
+
+function initStorage() {
+    remoteStorage.access.claim('procrastinator', 'rw')
+    remoteStorage.caching.enable('/procrastinator/')
+    const widget = new Widget(remoteStorage)
+    widget.attach('loginHolder')
 }
 
 moreBut.onclick = onMoreButClick
@@ -235,7 +248,8 @@ entryBut.onclick = onEntryButClick
 settingsBut.onclick = onSettingsButClick
 $('#settingsCont .toggle').click(onToggleButClick)
 
-loadSettings()
-loadShown()
-syncSettingsUI()
-loadEntries()
+initStorage()
+Promise.all([loadSettings(), loadShown()]).finally(() => {
+    syncSettingsUI()
+    loadEntries()
+})
