@@ -9,6 +9,7 @@
             padding: 0;
             margin: 0;
             box-sizing: border-box;
+            height: 100%;
         }
         body {
             color: #111;
@@ -17,6 +18,7 @@
             padding: 0;
             margin: 0;
             box-sizing: border-box;
+            height: 100%;
         }
         .flex {
             display: flex;
@@ -29,6 +31,9 @@
         }
         .flex.wrap {
             flex-wrap: wrap;
+        }
+        .flex.column {
+            flex-direction: column;
         }
         .ribbon {
             margin: 0;
@@ -53,6 +58,8 @@
             flex-grow: 1;
             letter-spacing: 0.2em;
             text-align: center;
+            overflow: hidden;
+            white-space: nowrap;
         }
         .ribbon img {
             height: 1em;
@@ -86,6 +93,16 @@
         img.checkbox {
             margin-right: 0.3em;
         }
+        .full-space {
+            min-width: 100%;
+            max-width: 100%;
+            min-height: 100%;
+            max-height: 100%;
+            flex-grow: 1;
+        }
+        .overflow {
+            overflow: auto;
+        }
     </style>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-131902348-1"></script>
@@ -104,48 +121,55 @@
             <p>Включите его, пожалуйста. Это зло, но это неизбежное зло.</p>
         </div>
     </noscript>
-    <div class="ribbon flex">
-        <div class="settings invisible"> <!-- to center the More button -->
-            <img src="settings.svg">
+    <div class="flex column full-space">
+        <div class="ribbon flex">
+            <div class="invisible"> <!-- to center the More button -->
+                <img src="settings.svg">
+            </div>
+            <div id="logoBut" class="more">
+                ПРОКРАСТИНАТОР
+            </div>
+            <div id="settingsBut">
+                <img src="settings.svg">
+            </div>
         </div>
-        <div id="moreBut" class="more">
-            ДАЛЬШЕ
+        <div id="settingsCont" class="ribbon flex wrap center hidden">
+            <div class="flex middle toggle" data-source="lenta">
+                <img class="checkbox" src="checked.svg"> Lenta
+            </div>
+            <div class="flex middle toggle" data-source="meduza">
+                <img class="checkbox" src="checked.svg"> Meduza
+            </div>
+            <div class="flex middle toggle" data-source="lj">
+                <img class="checkbox" src="checked.svg"> Топ ЖЖ
+            </div>
+            <div class="flex middle toggle" data-source="adme">
+                <img class="checkbox" src="checked.svg"> AdMe
+            </div>
+            <div class="flex middle toggle" data-source="habr">
+                <img class="checkbox" src="checked.svg"> Habr
+            </div>
+            <div class="flex middle toggle" data-source="lor">
+                <img class="checkbox" src="checked.svg"> LOR
+            </div>
         </div>
-        <div id="settingsBut" class="settings">
-            <img src="settings.svg">
+        <div id="loginCont" class="ribbon flex wrap center hidden">
+            <div id='loginHolder' style="font-size: 1em;"></div>
         </div>
-    </div>
-    <div id="settingsCont" class="ribbon flex wrap center hidden">
-        <div class="flex middle toggle" data-source="lenta">
-            <img class="checkbox" src="checked.svg"> Lenta
+        <div id="entryBut" class="entry full-space overflow" data-url="https://google.com">
+            <div id="titleCont" class="title">
+                Загружаю...
+            </div>
+            <div class="img">
+                <img id="imgTag"/>
+            </div>
+            <div id="textCont" class="text">
+            </div>
         </div>
-        <div class="flex middle toggle" data-source="meduza">
-            <img class="checkbox" src="checked.svg"> Meduza
-        </div>
-        <div class="flex middle toggle" data-source="lj">
-            <img class="checkbox" src="checked.svg"> Топ ЖЖ
-        </div>
-        <div class="flex middle toggle" data-source="adme">
-            <img class="checkbox" src="checked.svg"> AdMe
-        </div>
-        <div class="flex middle toggle" data-source="habr">
-            <img class="checkbox" src="checked.svg"> Habr
-        </div>
-        <div class="flex middle toggle" data-source="lor">
-            <img class="checkbox" src="checked.svg"> LOR
-        </div>
-    </div>
-    <div id="loginCont" class="ribbon flex wrap center hidden">
-        <div id='loginHolder' style="font-size: 1em;"></div>
-    </div>
-    <div id="entryBut" class="entry" data-url="https://google.com">
-        <div id="titleCont" class="title">
-            Загружаю...
-        </div>
-        <div class="img">
-            <img id="imgTag"/>
-        </div>
-        <div id="textCont" class="text">
+        <div class="ribbon flex">
+            <div id="moreBut" class="more">
+                ДАЛЬШЕ
+            </div>
         </div>
     </div>
     <script src="rss-parser.min.js"></script>

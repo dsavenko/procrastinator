@@ -18,6 +18,20 @@ const NOTHING_ENTRY = {
     text: 'Включите дополнительные ресурсы в настройках, или зайдите позже'
 }
 const LOADING_ENTRY = {title: 'Загружаю...'}
+const LOGO_ENTRY = {
+    title: 'Привет!',
+    html: 
+        '<p>Прокрастинатор собирает новости и статьи с других ресурсов и показывает вам по одной.</p>' +
+        
+        '<p>Прокрастинатор запоминает прочитанные статьи и не показывает их повторно.</p>' +
+        
+        '<p>Нажав на шестерёнку справа вверху, можно настроить, из каких источников брать информацию.</p>' +
+        
+        '<p>Там же можно подключить синхронизацию. С ней гораздо комфортнее использовать Прокрастинатор с разных устройств.</p>' +
+
+        '<p>Пожелания и предложения можно оставлять <a href="https://github.com/dsavenko/procrastinator/issues" target="_blank">на GitHub</a>, ' +
+        'либо писать мне на <a href="mailto:ds@dsavenko.com">почту</a>.</p>'
+}
 const MAX_SHOWN_LENGTH = 1000
 
 let entries = []
@@ -140,7 +154,11 @@ function setEntry(e) {
     e = e || {}
     titleCont.innerText = e.title || ''
     imgTag.src = e.imageUrl || ''
-    textCont.innerText = e.text || ''
+    if (e.html) {
+        textCont.innerHTML = e.html
+    } else {
+        textCont.innerText = e.text || ''
+    }
     entryBut.dataset.url = e.url || ''
 }
 
@@ -156,6 +174,10 @@ function pickEntry() {
         saveShown()
     }
     return currentEntry
+}
+
+function onLogoButClick() {
+    setEntry(LOGO_ENTRY)
 }
 
 function onMoreButClick() {
@@ -243,6 +265,7 @@ function initStorage() {
     widget.attach('loginHolder')
 }
 
+logoBut.onclick = onLogoButClick
 moreBut.onclick = onMoreButClick
 entryBut.onclick = onEntryButClick
 settingsBut.onclick = onSettingsButClick
