@@ -262,10 +262,15 @@ async function loadShown() {
 }
 
 function onChange(e) {
-    entries = filterEntries(entries)
     if ('settings.json' == e.relativePath) {
+        settings = e.newValue
         syncSettingsUI()
     }
+    if ('shown.json' == e.relativePath && shown.length != e.newValue.length) {
+        shown = [...new Set(shown.concat(e.newValue))]
+        saveShown()
+    }
+    entries = filterEntries(entries)
     console.log(`${e.origin} changes to ${e.relativePath} received and handled`)
 }
 
