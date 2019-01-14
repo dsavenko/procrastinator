@@ -46,6 +46,7 @@ let settings = {
 }
 let shown = []
 const remoteStorage = new RemoteStorage()
+const remoteClient = remoteStorage.scope('/procrastinator/')
 
 function shuffle(a) {
     for (let i = a.length - 1; i > 0; i--) {
@@ -234,15 +235,13 @@ function onToggleButClick() {
 }
 
 async function save(key, value) {
-    const client = remoteStorage.scope('/procrastinator/')
-    client.storeFile('application/json', `${key}.json`, JSON.stringify(value))
+    remoteClient.storeFile('application/json', `${key}.json`, JSON.stringify(value))
         .then(() => console.log(`Saved ${key}`))
         .catch(e => console.log(`Failed to save ${key}`, e))
 }
 
 async function load(key, defVal) {
-    const client = remoteStorage.scope('/procrastinator/')
-    const file = await client.getFile(`${key}.json`)
+    const file = await remoteClient.getFile(`${key}.json`)
     return file && file.data ? JSON.parse(file.data) : defVal
 }
 
@@ -262,15 +261,16 @@ async function loadShown() {
     shown = await load('shown', shown)
 }
 
-function onSyncDone() {
-    entries = filterEntries(entries)
-    console.log('sync done')
+function onChange(e) {
+    // entries = filterEntries(entries)
+    // console.log('sync done')
+    console.log('data was added, updated, or removed:', e)
 }
 
 function initStorage() {
     remoteStorage.access.claim('procrastinator', 'rw')
     remoteStorage.caching.enable('/procrastinator/')
-    remoteStorage.on('sync-done', onSyncDone)
+    remoteClient.on('change', onChange)
     const widget = new Widget(remoteStorage, {leaveOpen: true})
     widget.attach('loginHolder')
 }
