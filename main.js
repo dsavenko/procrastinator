@@ -262,9 +262,11 @@ async function loadShown() {
 }
 
 function onChange(e) {
-    // entries = filterEntries(entries)
-    // console.log('sync done')
-    console.log('data was added, updated, or removed:', e)
+    entries = filterEntries(entries)
+    if ('settings.json' == e.relativePath) {
+        syncSettingsUI()
+    }
+    console.log(`${e.origin} changes to ${e.relativePath} received and handled`)
 }
 
 function initStorage() {
