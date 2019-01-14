@@ -21,7 +21,7 @@ const LOADING_ENTRY = {title: 'Загружаю...'}
 const LOGO_ENTRY = {
     title: 'Привет, это Прокрастинатор!',
     html: 
-        '<p>Прокрастинатор собирает новости и статьи с других ресурсов и показывает вам по одной. <b>Просто нажмите ДАЛЬШЕ.</b></p>' +
+        '<p>Прокрастинатор собирает новости и статьи с других ресурсов и показывает вам по одной. <b>Просто нажмите &laquo;ДАЛЬШЕ&raquo; или пробел.</b></p>' +
         
         '<p>Прокрастинатор запоминает прочитанные статьи и не показывает их повторно.</p>' +
         
@@ -287,6 +287,12 @@ moreBut.onclick = onMoreButClick
 entryBut.onclick = onEntryButClick
 settingsBut.onclick = onSettingsButClick
 $('#settingsCont .toggle').click(onToggleButClick)
+
+document.addEventListener('keyup', e => {
+    if (32 == e.which) {
+        onMoreButClick()
+    }
+})
 
 initStorage()
 Promise.all([loadSettings(), loadShown()]).finally(() => {
