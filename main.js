@@ -55,9 +55,13 @@ function shuffle(a) {
     return a;
 }
 
+function filterEntries(newEntries) {
+    return newEntries.filter(e => settings[e.source] && !shown.includes(e.url))
+}
+
 function addEntries(newEntries) {
     const old = entries.length
-    entries = entries.concat(newEntries.filter(e => !shown.includes(e.url)))
+    entries = entries.concat(filterEntries(newEntries))
     const ret = entries.length - old
     shuffle(entries)
     loadFirstEntry()
@@ -258,9 +262,15 @@ async function loadShown() {
     shown = await load('shown', shown)
 }
 
+function onSyncDone() {
+    entries = filterEntries(entries)
+    console.log('sync done')
+}
+
 function initStorage() {
     remoteStorage.access.claim('procrastinator', 'rw')
     remoteStorage.caching.enable('/procrastinator/')
+    remoteStorage.on('sync-done', onSyncDone)
     const widget = new Widget(remoteStorage, {leaveOpen: true})
     widget.attach('loginHolder')
 }
