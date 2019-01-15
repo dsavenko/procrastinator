@@ -1,6 +1,4 @@
 
-/* global $, moreBut, entryBut, titleCont, imgTag, textCont, settingsBut, settingsCont */
-
 'use strict'
 
 const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/'
@@ -165,6 +163,7 @@ function setEntry(e) {
         textCont.innerText = e.text || ''
     }
     entryBut.dataset.url = e.url || ''
+    entryCont.scrollTop = 0
 }
 
 function pickEntry() {
