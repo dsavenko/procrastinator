@@ -2,15 +2,13 @@
 'use strict'
 
 const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/'
-const SOURCES = ['lenta', 'lj', 'meduza', 'habr', 'adme', 'lor']
-const LOAD_FUNC = {
-    lenta: loadLentaEntries,
-    lj: loadLJEntries,
-    meduza: loadMeduzaEntries,
-    adme: loadAdmeEntries,
-    habr: loadHabrEntries,
-    lor: loadLorEntries
-}
+const DEFAULT_SOURCES = [
+    {name: 'Lenta', on: true, url: 'https://lenta.ru/rss'},
+    {name: 'Meduza', on: true, url: 'https://meduza.io/rss/all'},
+    {name: 'AdMe', on: true, url: 'https://www.adme.ru/rss'},
+    {name: 'Habr', on: false, url: 'https://habr.com/rss/best/daily'},
+    {name: 'LOR', on: false, url: 'https://www.linux.org.ru/section-rss.jsp'}
+]
 const NOTHING_ENTRY = {
     title: 'Больше ничего нет :(',
     text: 'Включите дополнительные ресурсы в настройках, или зайдите позже'
@@ -34,17 +32,11 @@ const MAX_SHOWN_LENGTH = 1000
 
 let entries = []
 let currentEntry = {}
-let settings = {
-    lenta: true,
-    lj: true,
-    meduza: true,
-    adme: true,
-    habr: false,
-    lor: false
-}
+let sources = DEFAULT_SOURCES.map(s => ({...s}))
 let shown = []
-const remoteStorage = new RemoteStorage()
-const remoteClient = remoteStorage.scope('/procrastinator/')
+
+let remoteStorage
+let remoteClient
 
 function shuffle(a) {
     for (let i = a.length - 1; i > 0; i--) {
@@ -54,8 +46,17 @@ function shuffle(a) {
     return a;
 }
 
+function findSource(name) {
+    return sources.find(s => s.name === name)
+}
+
+function isSourceOn(name) {
+    const source = findSource(name)
+    return source && source.on
+}
+
 function filterEntries(newEntries) {
-    return newEntries.filter(e => settings[e.source] && !shown.includes(e.url))
+    return newEntries.filter(e => isSourceOn(e.sourceName) && !shown.includes(e.url))
 }
 
 function addEntries(newEntries) {
@@ -73,13 +74,13 @@ function htmlDecode(value) {
 
 
 async function loadRssSource(name, url) {
-    if (!settings[name]) {
+    if (!isSourceOn(name)) {
         return
     }
     try {
         const parser = new RSSParser()
         const feed = await parser.parseURL(CORS_PROXY + url)
-        if (!settings[name]) {
+        if (!isSourceOn(name)) {
             return
         }
         const newEntries = feed.items.map(e => {
@@ -93,7 +94,7 @@ async function loadRssSource(name, url) {
                 text: htmlDecode(e.contentSnippet),
                 imageUrl: imageUrl,
                 url: e.link,
-                source: name
+                sourceName: name
             }
         })
         const len = addEntries(newEntries)
@@ -103,54 +104,14 @@ async function loadRssSource(name, url) {
     }
 }
 
-async function loadLentaEntries() {
-    loadRssSource('lenta', 'https://lenta.ru/rss')
-}
-
-async function loadMeduzaEntries() {
-    loadRssSource('meduza', 'https://meduza.io/rss/all')
-}
-
-async function loadHabrEntries() {
-    loadRssSource('habr', 'https://habr.com/rss/best/daily')
-}
-
-async function loadAdmeEntries() {
-    loadRssSource('adme', 'https://www.adme.ru/rss')
-}
-
-async function loadLorEntries() {
-    loadRssSource('lor', 'https://www.linux.org.ru/section-rss.jsp')
-}
-
-async function loadLJEntries() {
-    if (!settings.lj) {
-        return
-    }
-    try {
-        const html = await $.ajax(CORS_PROXY + 'https://top.artlebedev.ru/')
-        if (!settings.lj) {
-            return
-        }
-        const items = $('.posts .item', $(html))
-        const ljEntries = items.map(function() {
-            return {
-                title: $('.title a', this).first().text() + ' — ' + $('.title .lj-user a', this).last().text(),
-                text: $('.p', this).text(),
-                imageUrl: $('.image img', this).attr('src'),
-                url: $('.title a', this).first().attr('href'),
-                source: 'lj'
-            }
-        }).get()
-        const len = addEntries(ljEntries)
-        console.log(`Added ${len} LJ entries`)
-    } catch(e) {
-        console.log('Failed to load LJ entries', e)
+function loadSource(source) {
+    if (source) {
+        loadRssSource(source.name, source.url).catch(e => console.log('Failed to load ${source.name}', e))
     }
 }
 
 function loadEntries() {
-    Object.values(LOAD_FUNC).forEach(f => f.call())
+    sources.forEach(s => loadSource(s))
 }
 
 function setEntry(e) {
@@ -206,30 +167,39 @@ function onSettingsButClick() {
     $(loginCont).toggleClass('hidden')
 }
 
-function syncSourceBut(source) {
-    $(`#settingsCont [data-source="${source}"] img`).attr('src', settings[source] ? 'checked.svg' : 'unchecked.svg')
+function getImgSrc(source) {
+    return source.on ? 'checked.svg' : 'unchecked.svg'
 }
 
-function syncSettingsUI() {
-    for (const source of SOURCES) {
-        syncSourceBut(source)
-    }
+function syncSourcesUI() {
+    $(settingsCont).empty()
+    sources.forEach(source => {
+        const sourceDiv = $('<div/>')
+        sourceDiv.addClass('flex middle toggle')
+        sourceDiv.attr('data-name', source.name)
+        sourceDiv.append(`<img class="checkbox" src="${getImgSrc(source)}"> ${source.name}`)
+        sourceDiv.click(onToggleButClick)
+        $(settingsCont).append(sourceDiv)
+    })
 }
 
 function onToggleButClick() {
-    const source = $(this).data('source')
-    if (typeof settings[source] !== undefined) {
-        settings[source] = !settings[source]
-        if (settings[source]) {
+    const name = $(this).data('name')
+    const source = findSource(name)
+    if (source) {
+        source.on = !source.on
+        if (source.on) {
             if (!currentEntry.url) {
                 setEntry(LOADING_ENTRY)
             }
-            LOAD_FUNC[source].call()
+            loadSource(source)
         } else {
-            entries = entries.filter(e => e.source != source)
+            entries = entries.filter(e => e.sourceName != name)
         }
-        saveSettings()
-        syncSettingsUI()
+        saveSources()
+        $(this).find('img').attr('src', getImgSrc(source))
+    } else {
+        console.log(`${name} source not found`)
     }
 }
 
@@ -239,43 +209,37 @@ async function save(key, value) {
         .catch(e => console.log(`Failed to save ${key}`, e))
 }
 
-async function load(key, defVal) {
-    const file = await remoteClient.getFile(`${key}.json`)
-    return file && file.data ? JSON.parse(file.data) : defVal
-}
-
-async function saveSettings() {
-    save('settings', settings)
-}
-
-async function loadSettings() {
-    settings = await load('settings', settings)
-}
-
 async function saveShown() {
     save('shown', shown)
 }
 
-async function loadShown() {
-    shown = await load('shown', shown)
+async function saveSources() {
+    save('sources', sources)
 }
 
 function onChange(e) {
-    if ('settings.json' == e.relativePath) {
-        settings = e.newValue
-        syncSettingsUI()
+    let validChanges = false
+    if ('sources.json' == e.relativePath) {
+        sources = e.newValue
+        syncSourcesUI()
+        validChanges = true
     }
     if ('shown.json' == e.relativePath && shown.length != e.newValue.length) {
         shown = [...new Set(shown.concat(e.newValue))]
         saveShown()
+        validChanges = true
     }
-    entries = filterEntries(entries)
-    console.log(`${e.origin} changes to ${e.relativePath} received and handled`)
+    if (validChanges) {
+        entries = filterEntries(entries)
+        console.log(`${e.origin} changes to ${e.relativePath} received and handled`)
+    }
 }
 
 function initStorage() {
+    remoteStorage = new RemoteStorage()
     remoteStorage.access.claim('procrastinator', 'rw')
     remoteStorage.caching.enable('/procrastinator/')
+    remoteClient = remoteStorage.scope('/procrastinator/')
     remoteClient.on('change', onChange)
     const widget = new Widget(remoteStorage, {leaveOpen: true})
     widget.attach('loginHolder')
@@ -285,7 +249,6 @@ logoBut.onclick = onLogoButClick
 moreBut.onclick = onMoreButClick
 entryBut.onclick = onEntryButClick
 settingsBut.onclick = onSettingsButClick
-$('#settingsCont .toggle').click(onToggleButClick)
 
 document.addEventListener('keyup', e => {
     if (32 == e.which) {
@@ -294,7 +257,5 @@ document.addEventListener('keyup', e => {
 })
 
 initStorage()
-Promise.all([loadSettings(), loadShown()]).finally(() => {
-    syncSettingsUI()
-    loadEntries()
-})
+syncSourcesUI()
+loadEntries()
