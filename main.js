@@ -237,7 +237,9 @@ async function saveSources() {
 function onChange(e) {
     let validChanges = false
     if ('sources.json' == e.relativePath) {
+        const newSources = e.newValue.filter(s => !findSource(s.name))
         sources = e.newValue
+        newSources.forEach(s => loadSource(s))
         syncSourcesUI()
         validChanges = true
     }
