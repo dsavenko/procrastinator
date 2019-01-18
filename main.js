@@ -164,6 +164,7 @@ function onEntryButClick() {
 }
 
 function onSettingsButClick() {
+    $(addCont).addClass('hidden')
     $(".gear-menu").toggleClass('hidden')
 }
 
@@ -262,7 +263,39 @@ moreBut.onclick = onMoreButClick
 entryBut.onclick = onEntryButClick
 settingsBut.onclick = onSettingsButClick
 
-showAddBut.onclick = () => $(addCont).toggleClass('hidden')
+showAddBut.onclick = () => {
+    $(addCont).toggleClass('hidden')
+}
+addBut.onclick = () => {
+    const newName = nameInput.value
+    if (0 >= newName.length) {
+        alert('Пожалуйста, введите имя')
+        return
+    }
+    if (8 < newName.length) {
+        alert('Пожалуйста, укоротите имя')
+        return
+    }
+    if (findSource(newName)) {
+        alert('Это имя уже используется')
+        return
+    }
+    const newUrl = urlInput.value
+    if (0 >= newUrl.length) {
+        alert('Пожалуйста, введите адрес RSS')
+        return
+    }
+    const existingSource = sources.find(s => s.url === newUrl)
+    if (existingSource) {
+        alert(`Этот адрес уже используется для ${existingSource.name}`)
+        return
+    }
+    const newSource = {name: newName, on: true, url: newUrl}
+    sources.push(newSource)
+    loadSource(newSource)
+    saveSources()
+    syncSourcesUI()
+}
 deleteBut.onclick = () => {
     delMode = !delMode
     syncSourcesUI()
