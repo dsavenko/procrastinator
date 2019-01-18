@@ -267,6 +267,17 @@ deleteBut.onclick = () => {
     delMode = !delMode
     syncSourcesUI()
 }
+resetBut.onclick = () => {
+    if (confirm('Вернуться к стандартному набору сайтов?')) {
+        sources = DEFAULT_SOURCES.map(s => ({...s}))
+        delMode = false
+        saveSources()
+        syncSourcesUI()
+        entries = []
+        setEntry(LOADING_ENTRY)
+        loadEntries()
+    }
+}
 
 document.addEventListener('keyup', e => {
     if (32 == e.which) {
