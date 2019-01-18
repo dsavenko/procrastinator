@@ -28,17 +28,31 @@ const LOGO_ENTRY = {
         '<p>Пожелания и предложения можно оставлять <a href="https://github.com/dsavenko/procrastinator/issues" target="_blank">на GitHub</a>, ' +
         'либо писать мне на <a href="mailto:ds@dsavenko.com">почту</a>.</p>'
 }
-const MAX_SHOWN_LENGTH = 1000
 
 let entries = []
 let currentEntry = {}
 let sources = DEFAULT_SOURCES.map(s => ({...s}))
-let shown = []
 let delMode = false
 let loadingSources = 0
 
 let remoteStorage
 let remoteClient
+
+async function rememberShown(entry) {
+    const path = 'shown/' + md5(entry.url)
+    return remoteClient.storeFile('text/plain', path, '')
+}
+
+async function filterShown(newEntries) {
+    if (0 >= newEntries.length) {
+        return newEntries
+    }
+    return remoteClient.getListing('shown/')
+        .then(listing => {
+            const ret = listing ? newEntries.filter(e => !listing[md5(e.url)]) : newEntries
+            return ret
+        })
+}
 
 function shuffle(a) {
     for (let i = a.length - 1; i > 0; i--) {
@@ -57,13 +71,14 @@ function isSourceOn(name) {
     return source && source.on
 }
 
-function filterEntries(newEntries) {
-    return newEntries.filter(e => isSourceOn(e.sourceName) && !shown.includes(e.url))
+async function filterEntries(newEntries) {
+    const enabledEntries = newEntries.filter(e => isSourceOn(e.sourceName))
+    return filterShown(enabledEntries)
 }
 
-function addEntries(newEntries) {
+async function addEntries(newEntries) {
     const old = entries.length
-    entries = entries.concat(filterEntries(newEntries))
+    entries = entries.concat(await filterEntries(newEntries))
     const ret = entries.length - old
     shuffle(entries)
     loadFirstEntry()
@@ -99,7 +114,7 @@ async function loadRssSource(name, url) {
                 sourceName: name
             }
         })
-        const len = addEntries(newEntries)
+        const len = await addEntries(newEntries)
         console.log(`Added ${len} ${name} entries`)
     } catch(e) {
         console.log(`Failed to load ${name} entries`, e)
@@ -140,11 +155,7 @@ function pickEntry() {
         currentEntry = 0 >= loadingSources ? NOTHING_ENTRY : LOADING_ENTRY
     } else {
         currentEntry = entries.shift()
-        shown.push(currentEntry.url)
-        while (MAX_SHOWN_LENGTH < shown.length) {
-            shown.shift()
-        }
-        saveShown()
+        rememberShown(currentEntry)
     }
     return currentEntry
 }
@@ -193,7 +204,7 @@ function syncSourcesUI() {
     })
 }
 
-function onToggleButClick() {
+async function onToggleButClick() {
     const name = $(this).data('name')
     const source = findSource(name)
     if (source) {
@@ -202,7 +213,7 @@ function onToggleButClick() {
                 const index = sources.findIndex(s => s.name === source.name)
                 if (-1 < index) {
                     sources.splice(index, 1)
-                    entries = filterEntries(entries)
+                    entries = await filterEntries(entries)
                     saveSources()
                     syncSourcesUI()
                 }
@@ -231,30 +242,24 @@ async function save(key, value) {
         .catch(e => console.log(`Failed to save ${key}`, e))
 }
 
-async function saveShown() {
-    save('shown', shown)
-}
-
 async function saveSources() {
     save('sources', sources)
 }
 
-function onChange(e) {
+async function onChange(e) {
     let validChanges = false
     if ('sources.json' == e.relativePath) {
-        const newSources = e.newValue.filter(s => !findSource(s.name))
+        const newSources = e.newValue.filter(s => {
+            const oldSource = findSource(s.name)
+            return !oldSource || (s.on && !oldSource.on)
+        })
         sources = e.newValue
         newSources.forEach(s => loadSource(s))
         syncSourcesUI()
         validChanges = true
     }
-    if ('shown.json' == e.relativePath && shown.length != e.newValue.length) {
-        shown = [...new Set(shown.concat(e.newValue))]
-        saveShown()
-        validChanges = true
-    }
     if (validChanges) {
-        entries = filterEntries(entries)
+        entries = await filterEntries(entries)
         console.log(`${e.origin} changes to ${e.relativePath} received and handled`)
     }
 }
