@@ -258,15 +258,7 @@ function initStorage() {
     widget.attach('loginHolder')
 }
 
-logoBut.onclick = onLogoButClick
-moreBut.onclick = onMoreButClick
-entryBut.onclick = onEntryButClick
-settingsBut.onclick = onSettingsButClick
-
-showAddBut.onclick = () => {
-    $(addCont).toggleClass('hidden')
-}
-addBut.onclick = () => {
+function addSource() {
     const newName = nameInput.value
     if (0 >= newName.length) {
         alert('Пожалуйста, введите имя')
@@ -296,11 +288,8 @@ addBut.onclick = () => {
     saveSources()
     syncSourcesUI()
 }
-deleteBut.onclick = () => {
-    delMode = !delMode
-    syncSourcesUI()
-}
-resetBut.onclick = () => {
+
+function resetSources() {
     if (confirm('Вернуться к стандартному набору сайтов?')) {
         sources = DEFAULT_SOURCES.map(s => ({...s}))
         delMode = false
@@ -311,6 +300,25 @@ resetBut.onclick = () => {
         loadEntries()
     }
 }
+
+function toggleDelMode() {
+    delMode = !delMode
+    syncSourcesUI()
+}
+
+function toggleAddCont() {
+    $(addCont).toggleClass('hidden')
+}
+
+logoBut.onclick = onLogoButClick
+moreBut.onclick = onMoreButClick
+entryBut.onclick = onEntryButClick
+settingsBut.onclick = onSettingsButClick
+
+addBut.onclick = addSource
+deleteBut.onclick = toggleDelMode
+resetBut.onclick = resetSources
+showAddBut.onclick = toggleAddCont
 
 document.addEventListener('keyup', e => {
     if (32 == e.which) {
