@@ -164,7 +164,9 @@ function onEntryButClick() {
 }
 
 function onSettingsButClick() {
-    $(addCont).addClass('hidden')
+    if (!$(addCont).hasClass('hidden')) {
+        toggleAddCont()
+    }
     $(".gear-menu").toggleClass('hidden')
 }
 
@@ -287,6 +289,7 @@ function addSource() {
     loadSource(newSource)
     saveSources()
     syncSourcesUI()
+    toggleAddCont()
 }
 
 function resetSources() {
@@ -303,10 +306,12 @@ function resetSources() {
 
 function toggleDelMode() {
     delMode = !delMode
+    $(deleteBut).toggleClass('enabled')
     syncSourcesUI()
 }
 
 function toggleAddCont() {
+    $(showAddBut).toggleClass('enabled')
     $(addCont).toggleClass('hidden')
 }
 
