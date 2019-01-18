@@ -52,7 +52,7 @@ async function cleanShown(listing) {
 
 async function rememberShown(entry) {
     const path = 'shown/' + md5(entry.url)
-    return remoteClient.storeFile('text/plain', path, '')
+    return remoteClient.storeFile('text/plain', path, '1') // because remoteStorage.js doesn't like empty files
 }
 
 async function filterShown(newEntries) {
@@ -279,6 +279,7 @@ async function onChange(e) {
 
 function initStorage() {
     remoteStorage = new RemoteStorage()
+    //remoteStorage.enableLog()
     remoteStorage.access.claim('procrastinator', 'rw')
     remoteStorage.caching.enable('/procrastinator/')
     remoteClient = remoteStorage.scope('/procrastinator/')
