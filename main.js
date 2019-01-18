@@ -35,7 +35,6 @@ let currentEntry = {}
 let sources = DEFAULT_SOURCES.map(s => ({...s}))
 let shown = []
 let delMode = false
-let loadingSources = 0
 
 let remoteStorage
 let remoteClient
