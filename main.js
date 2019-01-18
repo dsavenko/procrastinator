@@ -28,6 +28,7 @@ const LOGO_ENTRY = {
         '<p>Пожелания и предложения можно оставлять <a href="https://github.com/dsavenko/procrastinator/issues" target="_blank">на GitHub</a>, ' +
         'либо писать мне на <a href="mailto:ds@dsavenko.com">почту</a>.</p>'
 }
+const MAX_SHOWN_COUNT = 10000
 
 let entries = []
 let currentEntry = {}
@@ -37,6 +38,17 @@ let loadingSources = 0
 
 let remoteStorage
 let remoteClient
+
+async function cleanShown(listing) {
+    const keys = Object.keys(listing)
+    if (MAX_SHOWN_COUNT <= keys.length) {
+        console.log('Too many shown entries, cleaning')
+        for (let i = 0; i < keys.length; i += 2) {
+            await remoteClient.remove('shown/' + keys[i])
+        }
+        console.log('Cleaned excessive shown entries')
+    }
+}
 
 async function rememberShown(entry) {
     const path = 'shown/' + md5(entry.url)
@@ -50,6 +62,7 @@ async function filterShown(newEntries) {
     return remoteClient.getListing('shown/')
         .then(listing => {
             const ret = listing ? newEntries.filter(e => !listing[md5(e.url)]) : newEntries
+            cleanShown(listing)
             return ret
         })
 }
