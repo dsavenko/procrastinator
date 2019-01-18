@@ -35,6 +35,7 @@ let currentEntry = {}
 let sources = DEFAULT_SOURCES.map(s => ({...s}))
 let shown = []
 let delMode = false
+let loadingSources = 0
 
 let remoteStorage
 let remoteClient
@@ -107,9 +108,13 @@ async function loadRssSource(name, url) {
 
 function loadSource(source) {
     if (source) {
+        ++loadingSources
         loadRssSource(source.name, source.url)
             .catch(e => console.log('Failed to load ${source.name}', e))
-            .finally(() => loadFirstEntry())
+            .finally(() => {
+                --loadingSources
+                loadFirstEntry()
+            })
     }
 }
 
@@ -132,7 +137,7 @@ function setEntry(e) {
 
 function pickEntry() {
     if (0 >= entries.length) {
-        currentEntry = NOTHING_ENTRY
+        currentEntry = 0 >= loadingSources ? NOTHING_ENTRY : LOADING_ENTRY
     } else {
         currentEntry = entries.shift()
         shown.push(currentEntry.url)
