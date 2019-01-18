@@ -106,6 +106,10 @@
         .overflow {
             overflow: auto;
         }
+        input {
+            font-family: "Helvetica Neue", Arial, sans-serif;
+            font-size: 0.9em;
+        }
     </style>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-131902348-1"></script>
@@ -134,9 +138,19 @@
                 <img src="settings.svg">
             </div>
         </div>
-        <div id="settingsCont" class="ribbon flex wrap center hidden">
+        <div id="settingsCont" class="ribbon flex wrap center gear-menu hidden">
         </div>
-        <div id="loginCont" class="ribbon flex wrap center hidden">
+        <div id="advancedCont" class="ribbon flex wrap center gear-menu hidden">
+            <div id="showAddBut">Добавить</div>
+            <div id="deleteBut">Удалить</div>
+            <div id="resetBut">Сбросить</div>
+        </div>
+        <div id="addCont" class="ribbon flex wrap center hidden">
+            <div><input id="nameInput" type="text" placeholder="Имя (до 8 знаков)"></div>
+            <div><input id="urlInput" type="url" placeholder="Адрес"></div>
+            <div id="addBut">ОК</div>
+        </div>
+        <div id="loginCont" class="ribbon flex wrap center gear-menu hidden">
             <div id='loginHolder' style="font-size: 1em;"></div>
         </div>
         <div id="entryCont" class="full-space overflow">

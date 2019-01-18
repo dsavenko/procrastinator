@@ -34,6 +34,7 @@ let entries = []
 let currentEntry = {}
 let sources = DEFAULT_SOURCES.map(s => ({...s}))
 let shown = []
+let delMode = false
 
 let remoteStorage
 let remoteClient
@@ -163,12 +164,11 @@ function onEntryButClick() {
 }
 
 function onSettingsButClick() {
-    $(settingsCont).toggleClass('hidden')
-    $(loginCont).toggleClass('hidden')
+    $(".gear-menu").toggleClass('hidden')
 }
 
 function getImgSrc(source) {
-    return source.on ? 'checked.svg' : 'unchecked.svg'
+    return delMode ? 'trash.svg' : (source.on ? 'checked.svg' : 'unchecked.svg')
 }
 
 function syncSourcesUI() {
@@ -187,6 +187,18 @@ function onToggleButClick() {
     const name = $(this).data('name')
     const source = findSource(name)
     if (source) {
+        if (delMode) {
+            if (confirm(`Удалить ${source.name}?`)) {
+                const index = sources.findIndex(s => s.name === source.name)
+                if (-1 < index) {
+                    sources.splice(index, 1)
+                    entries = filterEntries(entries)
+                    saveSources()
+                    syncSourcesUI()
+                }
+            }
+            return
+        }
         source.on = !source.on
         if (source.on) {
             if (!currentEntry.url) {
@@ -249,6 +261,12 @@ logoBut.onclick = onLogoButClick
 moreBut.onclick = onMoreButClick
 entryBut.onclick = onEntryButClick
 settingsBut.onclick = onSettingsButClick
+
+showAddBut.onclick = () => $(addCont).toggleClass('hidden')
+deleteBut.onclick = () => {
+    delMode = !delMode
+    syncSourcesUI()
+}
 
 document.addEventListener('keyup', e => {
     if (32 == e.which) {
