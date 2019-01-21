@@ -9,6 +9,8 @@ const DEFAULT_SOURCES = [
     {name: 'Habr', on: false, url: 'https://habr.com/rss/best/daily'},
     {name: 'LOR', on: false, url: 'https://www.linux.org.ru/section-rss.jsp'}
 ]
+const DEFAULT_CONFIG = {welcomeShown: false}
+const DUMMY_URL = 'dummy'
 const NOTHING_ENTRY = {
     title: 'Больше ничего нет :(',
     text: 'Включите дополнительные ресурсы в настройках, или зайдите позже'
@@ -16,6 +18,7 @@ const NOTHING_ENTRY = {
 const LOADING_ENTRY = {title: 'Загружаю...'}
 const LOGO_ENTRY = {
     title: 'Привет, это Прокрастинатор!',
+    url: DUMMY_URL,
     html: 
         '<p>Прокрастинатор собирает новости и статьи с других ресурсов и показывает вам по одной. <b>Просто нажмите &laquo;ДАЛЬШЕ&raquo; или пробел.</b></p>' +
         
@@ -35,6 +38,7 @@ let currentEntry = {}
 let sources = DEFAULT_SOURCES.map(s => ({...s}))
 let delMode = false
 let loadingSources = 0
+let config = {...DEFAULT_CONFIG}
 
 let remoteStorage
 let remoteClient
@@ -161,16 +165,18 @@ function setEntry(e) {
     }
     entryBut.dataset.url = e.url || ''
     entryCont.scrollTop = 0
+    if (e.url && e.url !== DUMMY_URL) {
+        rememberShown(e)
+    }
+    currentEntry = e
 }
 
 function pickEntry() {
     if (0 >= entries.length) {
-        currentEntry = 0 >= loadingSources ? NOTHING_ENTRY : LOADING_ENTRY
+        return 0 >= loadingSources ? NOTHING_ENTRY : LOADING_ENTRY
     } else {
-        currentEntry = entries.shift()
-        rememberShown(currentEntry)
+        return entries.shift()
     }
-    return currentEntry
 }
 
 function onLogoButClick() {
@@ -189,7 +195,7 @@ function loadFirstEntry() {
 
 function onEntryButClick() {
     const url = entryBut.dataset.url
-    if (url) {
+    if (url && url !== DUMMY_URL) {
         window.open(url, '_blank')
     }
 }
@@ -250,13 +256,40 @@ async function onToggleButClick() {
 }
 
 async function save(key, value) {
-    remoteClient.storeFile('application/json', `${key}.json`, JSON.stringify(value))
+    return remoteClient.storeFile('application/json', `${key}.json`, JSON.stringify(value))
         .then(() => console.log(`Saved ${key}`))
         .catch(e => console.log(`Failed to save ${key}`, e))
 }
 
+async function load(key) {
+    return remoteClient.getFile(`${key}.json`)
+        .then(file => {
+            try {
+                return file ? JSON.parse(file.data) : null
+            } catch(e) {
+                console.log(`Failed to load ${key}`, e)
+                return null
+            }
+        })
+}
+
 async function saveSources() {
     save('sources', sources)
+}
+
+async function saveConfig() {
+    save('config', config)
+}
+
+async function loadConfig() {
+    config = (await load('config')) || {...DEFAULT_CONFIG}
+    if (!config.welcomeShown) {
+        if (!remoteStorage.remote.userAddress) {
+            setEntry(LOGO_ENTRY)
+        }        
+        config.welcomeShown = true
+        saveConfig()
+    }
 }
 
 async function onChange(e) {
@@ -361,5 +394,6 @@ document.addEventListener('keyup', e => {
 })
 
 initStorage()
+loadConfig().catch(e => console.log('Failed to load config', e))
 syncSourcesUI()
 loadEntries()
