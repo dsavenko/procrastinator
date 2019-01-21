@@ -280,6 +280,7 @@ async function onChange(e) {
 function initStorage() {
     remoteStorage = new RemoteStorage()
     remoteStorage.enableLog()
+    remoteStorage.setApiKeys({googledrive: '1078139606-9nh42gv73t49sm2qj3c2dutritjho4oo.apps.googleusercontent.com'})
     remoteStorage.access.claim('procrastinator', 'rw')
     remoteStorage.caching.enable('/procrastinator/')
     remoteClient = remoteStorage.scope('/procrastinator/')
