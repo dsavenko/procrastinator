@@ -279,7 +279,7 @@ async function onChange(e) {
 
 function initStorage() {
     remoteStorage = new RemoteStorage()
-    //remoteStorage.enableLog()
+    remoteStorage.enableLog()
     remoteStorage.access.claim('procrastinator', 'rw')
     remoteStorage.caching.enable('/procrastinator/')
     remoteClient = remoteStorage.scope('/procrastinator/')
