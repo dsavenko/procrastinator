@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Прокрастинатор</title>
+    <title data-i18n="title">Прокрастинатор</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="favicon.ico">
     <style>
@@ -130,6 +130,9 @@
         <div style="position: fixed; top: 0px; left: 0px; z-index: 3000; height: 100%; width: 100%; background-color: #fff; text-align: center;">
             <h3>Для работы нужен JavaScript :(</h3>
             <p>Включите его, пожалуйста. Это зло, но это неизбежное зло.</p>
+            <hr>
+            <h3>Need JavaScript to work properly :(</h3>
+            <p>Please, turn it on. It's an evil, but a necessary evil.</p>
         </div>
     </noscript>
     <div class="flex column full-space">
@@ -138,6 +141,8 @@
                 П
             </div>
             <div class="more invisible"></div>
+            <div id="langBut">
+            </div>
             <div id="settingsBut">
                 <img src="settings.svg">
             </div>
@@ -145,22 +150,21 @@
         <div id="settingsCont" class="ribbon flex wrap center gear-menu hidden">
         </div>
         <div id="advancedCont" class="ribbon flex wrap center gear-menu hidden">
-            <div id="showAddBut">Добавить</div>
-            <div id="deleteBut">Удалить</div>
-            <div id="resetBut">Сбросить</div>
+            <div id="showAddBut" data-i18n="add-btn">Добавить</div>
+            <div id="deleteBut" data-i18n="delete-btn">Удалить</div>
+            <div id="resetBut" data-i18n="reset-btn">Сбросить</div>
         </div>
         <div id="addCont" class="ribbon flex wrap center hidden">
-            <div><input id="nameInput" type="text" placeholder="Имя (до 8 знаков)" maxlength="8"></div>
-            <div><input id="urlInput" type="url" placeholder="Адрес RSS"></div>
-            <div id="addBut">ОК</div>
+            <div><input id="nameInput" type="text" data-i18n="[placeholder]name-placeholder" maxlength="8"></div>
+            <div><input id="urlInput" type="url" data-i18n="[placeholder]addr-placeholder"></div>
+            <div id="addBut" data-i18n="ok-btn">ОК</div>
         </div>
         <div id="loginCont" class="ribbon flex wrap center gear-menu hidden">
-            <div id='loginHolder' style="font-size: 1em;"></div>
+            <div id="loginHolder" style="font-size: 1em;"></div>
         </div>
         <div id="entryCont" class="full-space overflow">
             <div id="entryBut" class="entry" data-url="https://google.com">
                 <div id="titleCont" class="title">
-                    Загружаю...
                 </div>
                 <div class="img">
                     <img id="imgTag"/>
@@ -170,8 +174,7 @@
             </div>
         </div>
         <div class="ribbon flex">
-            <div id="moreBut" class="more">
-                ДАЛЬШЕ
+            <div id="moreBut" class="more" data-i18n="more-btn">
             </div>
         </div>
     </div>
@@ -180,6 +183,18 @@
     <script src="jquery.min.js"></script>
     <script src="remotestorage.js"></script>
     <script src="widget.js"></script>
+
+    <!-- jquery.i18n v1.0.5 -->
+    <script src="i18n/CLDRPluralRuleParser.js"></script>
+    <script src="i18n/jquery.i18n.js"></script>
+    <script src="i18n/jquery.i18n.messagestore.js"></script>
+    <script src="i18n/jquery.i18n.fallbacks.js"></script>
+    <script src="i18n/jquery.i18n.parser.js"></script>
+    <script src="i18n/jquery.i18n.emitter.js"></script>
+    <script src="i18n/jquery.i18n.language.js"></script>
+    <script src="i18n/ru.js"></script>
+    <script src="i18n/messages.js"></script>
+
     <script src="main.js"></script>
 </body>
 </html>

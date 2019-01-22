@@ -312,7 +312,7 @@ async function onChange(e) {
 
 function initStorage() {
     remoteStorage = new RemoteStorage()
-    remoteStorage.enableLog()
+    //remoteStorage.enableLog()
     remoteStorage.setApiKeys({googledrive: '1078139606-9nh42gv73t49sm2qj3c2dutritjho4oo.apps.googleusercontent.com'})
     remoteStorage.access.claim('procrastinator', 'rw')
     remoteStorage.caching.enable('/procrastinator/')
@@ -377,10 +377,30 @@ function toggleAddCont() {
     $(addCont).toggleClass('hidden')
 }
 
+function applyLocale() {
+    $('html').i18n()
+}
+
+function syncLangBut() {
+    if ($.i18n().locale.startsWith('ru')) {
+        $(langBut).text('En')
+    } else {
+        $(langBut).text('Ру')
+    }
+}
+
+function onLangButClick() {
+    const newLoc = $.i18n().locale.startsWith('ru') ? 'en' : 'ru'
+    $.i18n().locale = newLoc
+    syncLangBut()
+    applyLocale()
+}
+
 logoBut.onclick = onLogoButClick
 moreBut.onclick = onMoreButClick
 entryBut.onclick = onEntryButClick
 settingsBut.onclick = onSettingsButClick
+langBut.onclick = onLangButClick
 
 addBut.onclick = addSource
 deleteBut.onclick = toggleDelMode
@@ -393,6 +413,8 @@ document.addEventListener('keyup', e => {
     }
 })
 
+syncLangBut()
+$.i18n().load(PROC_MESSAGES).done(applyLocale)
 initStorage()
 loadConfig().catch(e => console.log('Failed to load config', e))
 syncSourcesUI()
