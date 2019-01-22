@@ -1,6 +1,9 @@
 
 'use strict'
 
+const GITHUB_URL = 'https://github.com/dsavenko/procrastinator/issues'
+const CONTACT_MAIL = 'ds@dsavenko.com'
+
 const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/'
 const DEFAULT_SOURCES = [
     {name: 'Lenta', on: true, url: 'https://lenta.ru/rss'},
@@ -11,26 +14,6 @@ const DEFAULT_SOURCES = [
 ]
 const DEFAULT_CONFIG = {welcomeShown: false}
 const DUMMY_URL = 'dummy'
-const NOTHING_ENTRY = {
-    title: 'Больше ничего нет :(',
-    text: 'Включите дополнительные ресурсы в настройках, или зайдите позже'
-}
-const LOADING_ENTRY = {title: 'Загружаю...'}
-const LOGO_ENTRY = {
-    title: 'Привет, это Прокрастинатор!',
-    url: DUMMY_URL,
-    html: 
-        '<p>Прокрастинатор собирает новости и статьи с других ресурсов и показывает вам по одной. <b>Просто нажмите &laquo;ДАЛЬШЕ&raquo; или пробел.</b></p>' +
-        
-        '<p>Прокрастинатор запоминает прочитанные статьи и не показывает их повторно.</p>' +
-        
-        '<p>Нажав на шестерёнку справа вверху, можно настроить, из каких источников брать информацию.</p>' +
-        
-        '<p>Там же можно подключить синхронизацию. С ней гораздо комфортнее использовать Прокрастинатор с разных устройств.</p>' +
-
-        '<p>Пожелания и предложения можно оставлять <a href="https://github.com/dsavenko/procrastinator/issues" target="_blank">на GitHub</a>, ' +
-        'либо писать мне на <a href="mailto:ds@dsavenko.com">почту</a>.</p>'
-}
 const MAX_SHOWN_COUNT = 10000
 
 let entries = []
@@ -42,6 +25,22 @@ let config = {...DEFAULT_CONFIG}
 
 let remoteStorage
 let remoteClient
+
+function nothingEntry() {
+    return {title: $.i18n('nothing-entry-title'), text: $.i18n('nothing-entry-text')}
+}
+
+function loadingEntry() {
+    return {title: $.i18n('loading-entry-title')}
+}
+
+function logoEntry() {
+    return {
+        title: $.i18n('logo-entry-title'),
+        html: $.i18n('logo-entry-html', $.i18n('more-btn'), GITHUB_URL, CONTACT_MAIL),
+        url: DUMMY_URL
+    }
+}
 
 async function cleanShown(listing) {
     const keys = Object.keys(listing)
@@ -173,14 +172,14 @@ function setEntry(e) {
 
 function pickEntry() {
     if (0 >= entries.length) {
-        return 0 >= loadingSources ? NOTHING_ENTRY : LOADING_ENTRY
+        return 0 >= loadingSources ? nothingEntry() : loadingEntry()
     } else {
         return entries.shift()
     }
 }
 
 function onLogoButClick() {
-    setEntry(LOGO_ENTRY)
+    setEntry(logoEntry())
 }
 
 function onMoreButClick() {
@@ -242,7 +241,7 @@ async function onToggleButClick() {
         source.on = !source.on
         if (source.on) {
             if (!currentEntry.url) {
-                setEntry(LOADING_ENTRY)
+                setEntry(loadingEntry())
             }
             loadSource(source)
         } else {
@@ -285,7 +284,7 @@ async function loadConfig() {
     config = (await load('config')) || {...DEFAULT_CONFIG}
     if (!config.welcomeShown) {
         if (!remoteStorage.remote.userAddress) {
-            setEntry(LOGO_ENTRY)
+            setEntry(logoEntry())
         }        
         config.welcomeShown = true
         saveConfig()
@@ -361,7 +360,7 @@ function resetSources() {
         saveSources()
         syncSourcesUI()
         entries = []
-        setEntry(LOADING_ENTRY)
+        setEntry(loadingEntry())
         loadEntries()
     }
 }
