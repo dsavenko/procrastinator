@@ -126,13 +126,42 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 3em;
+            font-size: 4em;
             -webkit-touch-callout: none; /* iOS Safari */
             -webkit-user-select: none; /* Safari */
             -khtml-user-select: none; /* Konqueror HTML */
             -moz-user-select: none; /* Firefox */
             -ms-user-select: none; /* Internet Explorer/Edge */
             user-select: none; 
+        }
+        @keyframes heartbeat {
+          0%
+          {
+            transform: scale( .75 );
+          }
+          20%
+          {
+            transform: scale( 1 );
+          }
+          40%
+          {
+            transform: scale( .75 );
+          }
+          60%
+          {
+            transform: scale( 1 );
+          }
+          80%
+          {
+            transform: scale( .75 );
+          }
+          100%
+          {
+            transform: scale( .75 );
+          }
+        }        
+        .pulsate {
+            animation: heartbeat 1s infinite;
         }
     </style>
     <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -156,7 +185,7 @@
         </div>
     </noscript>
     <div id="splash">
-        <div>П</div>
+        <div class="pulsate">П</div>
     </div>
     <div class="flex column full-space">
         <div class="ribbon flex">
