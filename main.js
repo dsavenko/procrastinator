@@ -404,6 +404,10 @@ function onLangButClick() {
     saveConfig()
 }
 
+function hideSplash() {
+    $(splash).hide()
+}
+
 logoBut.onclick = onLogoButClick
 moreBut.onclick = onMoreButClick
 entryBut.onclick = onEntryButClick
@@ -429,5 +433,7 @@ loadConfig()
     .then(() => {
         applyLocale()
         syncSourcesUI()
+        setEntry(loadingEntry())
+        hideSplash()
         loadEntries()
     })

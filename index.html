@@ -114,6 +114,26 @@
         .enabled {
             background-color: rgba(255, 255, 255, 0.3);
         }
+        #splash {
+            background-color: #FF4136;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 1000;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3em;
+            -webkit-touch-callout: none; /* iOS Safari */
+            -webkit-user-select: none; /* Safari */
+            -khtml-user-select: none; /* Konqueror HTML */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; 
+        }
     </style>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-131902348-1"></script>
@@ -135,6 +155,9 @@
             <p>Please, turn it on. It's an evil, but a necessary evil.</p>
         </div>
     </noscript>
+    <div id="splash">
+        <div>П</div>
+    </div>
     <div class="flex column full-space">
         <div class="ribbon flex">
             <div id="logoBut">
