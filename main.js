@@ -97,60 +97,50 @@ function isSourceOn(name) {
 }
 
 async function filterEntries(newEntries) {
-    const enabledEntries = newEntries.filter(e => isSourceOn(e.sourceName))
-    return filterShown(enabledEntries)
-}
-
-async function addEntries(newEntries) {
-    const old = entries.length
-    entries = entries.concat(await filterEntries(newEntries))
-    const ret = entries.length - old
-    shuffle(entries)
-    loadFirstEntry()
-    return ret
+    const unseenEntries = await filterShown(newEntries)
+    return unseenEntries.filter(e => isSourceOn(e.sourceName))
 }
 
 function htmlDecode(value) {
     return $('<textarea/>').html(value).text()
 }
 
-
 async function loadRssSource(name, url) {
-    if (!isSourceOn(name)) {
-        return
-    }
-    try {
-        const parser = new RSSParser()
-        const feed = await parser.parseURL(CORS_PROXY + url)
-        if (!isSourceOn(name)) {
-            return
+    const parser = new RSSParser()
+    const feed = await parser.parseURL(CORS_PROXY + url)
+    return feed.items.map(e => {
+        let imageUrl = (e.enclosure || {}).url
+        if (!imageUrl) {
+            const tmpDom = $('<div>').append($.parseHTML(e.content))
+            imageUrl = $('img', tmpDom).attr('src')
         }
-        const newEntries = feed.items.map(e => {
-            let imageUrl = (e.enclosure || {}).url
-            if (!imageUrl) {
-                const tmpDom = $('<div>').append($.parseHTML(e.content))
-                imageUrl = $('img', tmpDom).attr('src')
-            }
-            return {
-                title: htmlDecode(e.title),
-                text: htmlDecode(e.contentSnippet),
-                imageUrl: imageUrl,
-                url: e.link,
-                sourceName: name
-            }
-        })
-        const len = await addEntries(newEntries)
-        console.log(`Added ${len} ${name} entries`)
-    } catch(e) {
-        console.log(`Failed to load ${name} entries`, e)
-    }
+        return {
+            title: htmlDecode(e.title),
+            text: htmlDecode(e.contentSnippet),
+            imageUrl: imageUrl,
+            url: e.link,
+            sourceName: name
+        }
+    })
 }
 
+async function addEntries(sourceName, newEntries) {
+    if (!isSourceOn(sourceName)) {
+        return
+    }
+    const filteredEntries = await filterEntries(newEntries)
+    const old = entries.length
+    entries = entries.concat(filteredEntries)
+    shuffle(entries)
+    console.log(`Added ${entries.length - old} ${sourceName} entries, total number of entries: ${entries.length}`)
+} 
+
 function loadSource(source) {
-    if (source) {
+    if (source && isSourceOn(source.name)) {
         ++loadingSources
         loadRssSource(source.name, source.url)
-            .catch(e => console.log('Failed to load ${source.name}', e))
+            .then(newEntries => addEntries(source.name, newEntries))
+            .catch(e => console.log(`Failed to load ${source.name}`, e))
             .finally(() => {
                 --loadingSources
                 loadFirstEntry()
