@@ -15,6 +15,7 @@ const DEFAULT_SOURCES = [
 const DEFAULT_CONFIG = {welcomeShown: false}
 const DUMMY_URL = 'dummy'
 const MAX_SHOWN_COUNT = 10000
+const SUPPORTED_LOCALES = ['en', 'ru']
 
 let entries = []
 let currentEntry = {}
@@ -262,7 +263,7 @@ async function onToggleButClick() {
     }
 }
 
-async function save(key, value) {
+async function saveValue(key, value) {
     return remoteClient.storeFile('application/json', `${key}.json`, JSON.stringify(value))
         .then(() => console.log(`Saved ${key}`))
         .catch(e => console.log(`Failed to save ${key}`, e))
@@ -281,15 +282,19 @@ async function load(key) {
 }
 
 async function saveSources() {
-    save('sources', sources)
+    saveValue('sources', sources)
 }
 
 async function saveConfig() {
-    save('config', config)
+    saveValue('config', config)
 }
 
 async function loadConfig() {
     config = (await load('config')) || {...DEFAULT_CONFIG}
+    if (config.locale && SUPPORTED_LOCALES.includes(config.locale)) {
+        $.i18n().locale = config.locale
+        console.log('Set locale from config', $.i18n().locale)
+    }
     if (!config.welcomeShown) {
         if (!remoteStorage.remote.userAddress) {
             setEntry(welcomeEntry())
@@ -404,6 +409,8 @@ function onLangButClick() {
     $.i18n().locale = newLoc
     syncLangBut()
     applyLocale()
+    config.locale = newLoc
+    saveConfig()
 }
 
 logoBut.onclick = onLogoButClick
@@ -424,8 +431,12 @@ document.addEventListener('keyup', e => {
 })
 
 syncLangBut()
-$.i18n().load(PROC_MESSAGES).done(applyLocale)
 initStorage()
-loadConfig().catch(e => console.log('Failed to load config', e))
-syncSourcesUI()
-loadEntries()
+loadConfig()
+    .catch(e => console.log('Failed to load config', e))
+    .finally(() => $.i18n().load(PROC_MESSAGES))
+    .then(() => {
+        applyLocale()
+        syncSourcesUI()
+        loadEntries()
+    })
