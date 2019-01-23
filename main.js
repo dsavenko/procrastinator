@@ -27,18 +27,26 @@ let remoteStorage
 let remoteClient
 
 function nothingEntry() {
-    return {title: $.i18n('nothing-entry-title'), text: $.i18n('nothing-entry-text')}
+    return {
+        title: $.i18n('nothing-entry-title'),
+        html: $.i18n('nothing-entry-html'),
+        rebuild: nothingEntry
+    }
 }
 
 function loadingEntry() {
-    return {title: $.i18n('loading-entry-title')}
+    return {
+        title: $.i18n('loading-entry-title'),
+        rebuild: loadingEntry
+    }
 }
 
-function logoEntry() {
+function welcomeEntry() {
     return {
-        title: $.i18n('logo-entry-title'),
-        html: $.i18n('logo-entry-html', $.i18n('more-btn'), GITHUB_URL, CONTACT_MAIL),
-        url: DUMMY_URL
+        title: $.i18n('welcome-entry-title'),
+        html: $.i18n('welcome-entry-html', $.i18n('more-btn'), GITHUB_URL, CONTACT_MAIL),
+        url: DUMMY_URL,
+        rebuild: welcomeEntry
     }
 }
 
@@ -179,7 +187,7 @@ function pickEntry() {
 }
 
 function onLogoButClick() {
-    setEntry(logoEntry())
+    setEntry(welcomeEntry())
 }
 
 function onMoreButClick() {
@@ -284,7 +292,7 @@ async function loadConfig() {
     config = (await load('config')) || {...DEFAULT_CONFIG}
     if (!config.welcomeShown) {
         if (!remoteStorage.remote.userAddress) {
-            setEntry(logoEntry())
+            setEntry(welcomeEntry())
         }        
         config.welcomeShown = true
         saveConfig()
@@ -324,25 +332,25 @@ function initStorage() {
 function addSource() {
     const newName = nameInput.value
     if (0 >= newName.length) {
-        alert('Пожалуйста, введите имя')
+        alert($.i18n('no-name-alert'))
         return
     }
     if (8 < newName.length) {
-        alert('Пожалуйста, укоротите имя')
+        alert($.i18n('name-too-long-alert'))
         return
     }
     if (findSource(newName)) {
-        alert('Это имя уже используется')
+        alert($.i18n('name-exists-alert'))
         return
     }
     const newUrl = urlInput.value
     if (0 >= newUrl.length) {
-        alert('Пожалуйста, введите адрес RSS')
+        alert($.i18n('no-rss-addr-alert'))
         return
     }
     const existingSource = sources.find(s => s.url === newUrl)
     if (existingSource) {
-        alert(`Этот адрес уже используется для ${existingSource.name}`)
+        alert($.i18n('rss-addr-exists-alert', existingSource.name))
         return
     }
     const newSource = {name: newName, on: true, url: newUrl}
@@ -354,7 +362,7 @@ function addSource() {
 }
 
 function resetSources() {
-    if (confirm('Вернуться к стандартному набору сайтов?')) {
+    if (confirm($.i18n('reset-confirm'))) {
         sources = DEFAULT_SOURCES.map(s => ({...s}))
         delMode = false
         saveSources()
@@ -378,6 +386,9 @@ function toggleAddCont() {
 
 function applyLocale() {
     $('html').i18n()
+    if (currentEntry.rebuild) {
+        setEntry(currentEntry.rebuild())
+    }
 }
 
 function syncLangBut() {
