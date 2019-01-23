@@ -318,6 +318,7 @@ function initStorage() {
     remoteStorage.setApiKeys({googledrive: '1078139606-9nh42gv73t49sm2qj3c2dutritjho4oo.apps.googleusercontent.com'})
     remoteStorage.access.claim('procrastinator', 'rw')
     remoteStorage.caching.enable('/procrastinator/')
+    remoteStorage.caching.disable('/procrastinator/shown/')
     remoteClient = remoteStorage.scope('/procrastinator/')
     remoteClient.on('change', onChange)
     const widget = new Widget(remoteStorage, {leaveOpen: true})
