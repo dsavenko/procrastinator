@@ -6,7 +6,7 @@ const PROC_MESSAGES = {
         'add-btn': 'Add',
         'delete-btn': 'Delete',
         'reset-btn': 'Reset',
-        'name-placeholder': 'Name (up to 8 chars)',
+        'name-placeholder': 'Name (up to 10 chars)',
         'addr-placeholder': 'RSS address',
         'ok-btn': 'OK',
 
@@ -43,7 +43,7 @@ const PROC_MESSAGES = {
         'add-btn': 'Добавить',
         'delete-btn': 'Удалить',
         'reset-btn': 'Сбросить',
-        'name-placeholder': 'Имя (до 8 знаков)',
+        'name-placeholder': 'Имя (до 10 знаков)',
         'addr-placeholder': 'Адрес RSS',
         'ok-btn': 'OK',
 

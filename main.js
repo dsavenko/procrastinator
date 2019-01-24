@@ -12,10 +12,18 @@ const DEFAULT_SOURCES = [
     {name: 'Habr', on: false, url: 'https://habr.com/rss/best/daily'},
     {name: 'LOR', on: false, url: 'https://www.linux.org.ru/section-rss.jsp'}
 ]
+const DEFAULT_SOURCES_EN = [
+    {name: 'CNN', on: true, url: 'http://rss.cnn.com/rss/edition.rss'},
+    {name: 'NYT', on: true, url: 'http://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml'},
+    {name: 'RT', on: true, url: 'https://www.rt.com/rss/'},
+    {name: 'Onion', on: true, url: 'https://www.theonion.com/rss'},
+    {name: 'TechCrunch', on: false, url: 'http://feeds.feedburner.com/TechCrunch/'},
+]
 const DEFAULT_CONFIG = {welcomeShown: false}
 const DUMMY_URL = 'dummy'
 const MAX_SHOWN_COUNT = 10000
 const SUPPORTED_LOCALES = ['en', 'ru']
+const MAX_NAME_LEN = 10
 
 let entries = []
 let currentEntry = {}
@@ -105,10 +113,17 @@ function htmlDecode(value) {
     return $('<textarea/>').html(value).text()
 }
 
+function extractImageFromHtml(content) {
+    if (content) {
+        const tmpDom = $('<div>').append($.parseHTML(content))
+        return $('img', tmpDom).attr('src')
+    }
+}
+
 async function loadRssSource(name, url) {
     const parser = new RSSParser({
         customFields: {
-            item: ['media:group', 'media:content']
+            item: ['media:group', 'media:content', 'media:thumbnail']
         }
     })
     const feed = await parser.parseURL(CORS_PROXY + url)
@@ -117,6 +132,9 @@ async function loadRssSource(name, url) {
         if (!imageUrl && e['media:content']) { 
             imageUrl = (e['media:content'].$ || {}).url
         }
+        if (!imageUrl && e['media:thumbnail']) { 
+            imageUrl = (e['media:thumbnail'].$ || {}).url
+        }
         if (!imageUrl && e['media:group']) {
             const mediaContent = e['media:group']['media:content']
             if (mediaContent && 0 <= mediaContent.length) {
@@ -124,8 +142,7 @@ async function loadRssSource(name, url) {
             }
         }
         if (!imageUrl) {
-            const tmpDom = $('<div>').append($.parseHTML(e.content))
-            imageUrl = $('img', tmpDom).attr('src')
+            imageUrl = extractImageFromHtml(e.content) || extractImageFromHtml(e['content:encoded'])
         }
         return {
             title: htmlDecode(e.title),
@@ -357,7 +374,7 @@ function addSource() {
         alert($.i18n('no-name-alert'))
         return
     }
-    if (8 < newName.length) {
+    if (MAX_NAME_LEN < newName.length) {
         alert($.i18n('name-too-long-alert'))
         return
     }
