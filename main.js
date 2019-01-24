@@ -21,7 +21,7 @@ let entries = []
 let currentEntry = {}
 let sources = DEFAULT_SOURCES.map(s => ({...s}))
 let delMode = false
-let loadingSources = 0
+let loadingSources = []
 let config = {...DEFAULT_CONFIG}
 
 let remoteStorage
@@ -133,16 +133,27 @@ async function addEntries(sourceName, newEntries) {
     entries = entries.concat(filteredEntries)
     shuffle(entries)
     console.log(`Added ${entries.length - old} ${sourceName} entries, total number of entries: ${entries.length}`)
-} 
+}
+
+function removeA(arr) {
+    let what, a = arguments, L = a.length, ax
+    while (L > 1 && arr.length) {
+        what = a[--L]
+        while ((ax= arr.indexOf(what)) !== -1) {
+            arr.splice(ax, 1)
+        }
+    }
+    return arr
+}
 
 function loadSource(source) {
-    if (source && isSourceOn(source.name)) {
-        ++loadingSources
+    if (source && isSourceOn(source.name) && !loadingSources.includes(source.name)) {
+        loadingSources.push(source.name)
         loadRssSource(source.name, source.url)
             .then(newEntries => addEntries(source.name, newEntries))
             .catch(e => console.log(`Failed to load ${source.name}`, e))
             .finally(() => {
-                --loadingSources
+                removeA(loadingSources, source.name)
                 loadFirstEntry()
             })
     }
@@ -171,7 +182,7 @@ function setEntry(e) {
 
 function pickEntry() {
     if (0 >= entries.length) {
-        return 0 >= loadingSources ? nothingEntry() : loadingEntry()
+        return 0 >= loadingSources.length ? nothingEntry() : loadingEntry()
     } else {
         return entries.shift()
     }
@@ -226,7 +237,7 @@ async function onToggleButClick() {
     const source = findSource(name)
     if (source) {
         if (delMode) {
-            if (confirm(`Удалить ${source.name}?`)) {
+            if (confirm($.i18n('delete-confirm', source.name))) {
                 const index = sources.findIndex(s => s.name === source.name)
                 if (-1 < index) {
                     sources.splice(index, 1)

@@ -34,6 +34,7 @@ const PROC_MESSAGES = {
         'no-rss-addr-alert': 'Please, enter an RSS address',
         'rss-addr-exists-alert': 'This RSS address is already used for $1',
         'reset-confirm': 'Get back to the standard sites? All your changes will be lost.',
+        'delete-confirm': 'Delete $1?',
     },
     
     ru: {
@@ -70,5 +71,6 @@ const PROC_MESSAGES = {
         'no-rss-addr-alert': 'Пожалуйста, введите адрес RSS',
         'rss-addr-exists-alert': 'Этот адрес уже используется для $1',
         'reset-confirm': 'Вернуться к стандартному набору сайтов? Все ваши изменения буду утеряны.',
+        'delete-confirm': 'Удалить $1?',
     }
 }
