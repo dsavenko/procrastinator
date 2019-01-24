@@ -106,10 +106,23 @@ function htmlDecode(value) {
 }
 
 async function loadRssSource(name, url) {
-    const parser = new RSSParser()
+    const parser = new RSSParser({
+        customFields: {
+            item: ['media:group', 'media:content']
+        }
+    })
     const feed = await parser.parseURL(CORS_PROXY + url)
     return feed.items.map(e => {
         let imageUrl = (e.enclosure || {}).url
+        if (!imageUrl && e['media:content']) { 
+            imageUrl = (e['media:content'].$ || {}).url
+        }
+        if (!imageUrl && e['media:group']) {
+            const mediaContent = e['media:group']['media:content']
+            if (mediaContent && 0 <= mediaContent.length) {
+                imageUrl = (mediaContent[0].$ || {}).url
+            }
+        }
         if (!imageUrl) {
             const tmpDom = $('<div>').append($.parseHTML(e.content))
             imageUrl = $('img', tmpDom).attr('src')
@@ -156,6 +169,8 @@ function loadSource(source) {
                 removeA(loadingSources, source.name)
                 loadFirstEntry()
             })
+    } else {
+        loadFirstEntry()
     }
 }
 
