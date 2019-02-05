@@ -326,6 +326,7 @@ async function loadConfig() {
     config = (await load('config')) || {...DEFAULT_CONFIG}
     if (config.locale && SUPPORTED_LOCALES.includes(config.locale)) {
         $.i18n().locale = config.locale
+        syncLangBut()
         console.log('Set locale from config', $.i18n().locale)
     }
     if (!config.welcomeShown) {
