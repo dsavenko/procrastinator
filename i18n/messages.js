@@ -17,7 +17,9 @@ const PROC_MESSAGES = {
 
         'welcome-entry-title': 'Hi, this is Procrastinator!',
         'welcome-entry-html':
-            '<p>Procrastinator gathers news and articles from other resources and shows them one by one. <b>Just hit &laquo;$1&raquo; or spacebar.</b></p>' +
+            '<p>Procrastinator gathers news and articles from other resources and shows them one by one. ' + 
+            '<b>Just hit &laquo;$1&raquo; or spacebar.</b> ' + 
+            'Hit the article itself to see the original.</p>' +
             
             '<p>Procrastinator remembers articles you\'ve seen and doesn\'t show them again.</p>' +
             
@@ -54,7 +56,9 @@ const PROC_MESSAGES = {
 
         'welcome-entry-title': 'Привет, это Прокрастинатор!',
         'welcome-entry-html':
-            '<p>Прокрастинатор собирает новости и статьи с других ресурсов и показывает вам по одной. <b>Просто нажмите &laquo;$1&raquo; или пробел.</b></p>' +
+            '<p>Прокрастинатор собирает новости и статьи с других ресурсов и показывает вам по одной. ' + 
+            '<b>Просто нажмите &laquo;$1&raquo; или пробел.</b> ' + 
+            'Увидеть оригинал можно, нажав на саму статью.</p>' +
             
             '<p>Прокрастинатор запоминает прочитанные статьи и не показывает их повторно.</p>' +
             
