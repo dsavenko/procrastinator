@@ -4,6 +4,11 @@
 const GITHUB_URL = 'https://github.com/dsavenko/procrastinator/issues'
 const CONTACT_MAIL = 'ds@dsavenko.com'
 
+const GOOGLE_API_KEY = 'AIzaSyDlb5UaSg22xKTTTbRu8vW97WO7z3BOtpk'
+const GOOGLE_CLIENT_ID = '1078139606-9nh42gv73t49sm2qj3c2dutritjho4oo.apps.googleusercontent.com'
+const GOOGLE_DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+const GOOGLE_SCOPES = 'https://www.googleapis.com/auth/drive.appfolder'
+
 const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/'
 const DEFAULT_SOURCES = [
     {name: 'Lenta', on: true, url: 'https://lenta.ru/rss'},
@@ -398,6 +403,7 @@ function toggleAddCont() {
 
 function applyLocale() {
     $('html').i18n()
+    syncLogInBut()
     if (currentEntry.rebuild) {
         setEntry(currentEntry.rebuild())
     }
@@ -408,6 +414,18 @@ function syncLangBut() {
         $(langBut).text('En')
     } else {
         $(langBut).text('Ру')
+    }
+}
+
+function syncLogInBut() {
+    if (gapi && gapi.auth2) {
+        if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
+            $(googleBut).text($.i18n('google-logout'))
+        } else {
+            $(googleBut).text($.i18n('google-login'))
+        }
+    } else {
+        $(googleBut).text('. . .')
     }
 }
 
@@ -422,6 +440,33 @@ function onLangButClick() {
 
 function hideSplash() {
     $(splash).hide()
+}
+
+function initClient() {
+    gapi.client.init({
+        apiKey: GOOGLE_API_KEY,
+        clientId: GOOGLE_CLIENT_ID,
+        discoveryDocs: GOOGLE_DISCOVERY_DOCS,
+        scope: GOOGLE_SCOPES
+    }).then(function () {
+        // Listen for sign-in state changes.
+        gapi.auth2.getAuthInstance().isSignedIn.listen(syncLogInBut)
+        // Handle the initial sign-in state.
+        syncLogInBut()
+        googleBut.onclick = onGoogleButClick
+    }, function(error) {
+        console.log('Failed to init GAPI client', error)
+    })
+}
+
+function onGoogleButClick() {
+    if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
+        if (confirm($.i18n('google-logout-confirm'))) {
+            gapi.auth2.getAuthInstance().signOut()
+        }
+    } else {
+        gapi.auth2.getAuthInstance().signIn()
+    }
 }
 
 logoBut.onclick = onLogoButClick

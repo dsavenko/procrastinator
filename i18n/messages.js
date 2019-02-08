@@ -10,6 +10,10 @@ const PROC_MESSAGES = {
         'addr-placeholder': 'RSS address',
         'ok-btn': 'OK',
 
+        'google-login': 'Log in via Google',
+        'google-logout': 'Log out',
+        'google-logout-confirm': 'Really log out?',
+
         'nothing-entry-title': 'I don\'t have more :(',
         'nothing-entry-html': '<center>Enable additional sources or come back later.</center>',
 
@@ -48,6 +52,10 @@ const PROC_MESSAGES = {
         'name-placeholder': 'Имя (до 10 знаков)',
         'addr-placeholder': 'Адрес RSS',
         'ok-btn': 'OK',
+
+        'google-login': 'Зайти через Google',
+        'google-logout': 'Выйти',
+        'google-logout-confirm': 'Правда выйти?',
 
         'nothing-entry-title': 'Больше ничего нет :(',
         'nothing-entry-html': '<center>Включите дополнительные ресурсы в настройках, или зайдите позже.</center>',

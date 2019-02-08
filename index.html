@@ -211,10 +211,10 @@
             <div><input id="urlInput" type="url" data-i18n="[placeholder]addr-placeholder"></div>
             <div id="addBut" data-i18n="ok-btn">ОК</div>
         </div>
-<!--         <div id="loginCont" class="ribbon flex wrap center gear-menu hidden">
-            <div id="loginHolder" style="font-size: 1em;"></div>
+        <div id="loginCont" class="ribbon flex wrap center gear-menu hidden">
+            <div id="googleBut">Зайти через Google</div>
         </div>
- -->        <div id="entryCont" class="full-space overflow">
+        <div id="entryCont" class="full-space overflow">
             <div id="entryBut" class="entry" data-url="https://google.com">
                 <div id="titleCont" class="title">
                     . . .
@@ -234,6 +234,7 @@
     <script src="md5.js"></script>
     <script src="rss-parser.min.js"></script>
     <script src="jquery.min.js"></script>
+    <script src="https://apis.google.com/js/api.js"></script>
 
     <!-- jquery.i18n v1.0.5 -->
     <script src="i18n/CLDRPluralRuleParser.js"></script>
@@ -247,5 +248,9 @@
     <script src="i18n/messages.js"></script>
 
     <script src="main.js"></script>
+    <script src="https://apis.google.com/js/api.js"
+      onload="this.onload=function(){}; gapi.load('client:auth2', initClient)"
+      onreadystatechange="if (this.readyState === 'complete') this.onload()">
+    </script>
 </body>
 </html>
