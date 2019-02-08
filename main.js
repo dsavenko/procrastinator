@@ -68,6 +68,10 @@ function rememberShown(entry) {
     }
 }
 
+function isShown(entry) {
+    return null != localStorage.getItem(`shown/${md5(entry.url)}`)
+}
+
 function shuffle(a) {
     for (let i = a.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -86,7 +90,7 @@ function isSourceOn(name) {
 }
 
 function filterEntries(newEntries) {
-    return newEntries.filter(e => isSourceOn(e.sourceName))
+    return newEntries.filter(e => isSourceOn(e.sourceName) && !isShown(e))
 }
 
 function htmlDecode(value) {
@@ -244,7 +248,7 @@ function syncSourcesUI() {
     })
 }
 
-async function onToggleButClick() {
+function onToggleButClick() {
     const name = $(this).data('name')
     const source = findSource(name)
     if (source) {
@@ -253,7 +257,7 @@ async function onToggleButClick() {
                 const index = sources.findIndex(s => s.name === source.name)
                 if (-1 < index) {
                     sources.splice(index, 1)
-                    entries = await filterEntries(entries)
+                    entries = filterEntries(entries)
                     saveSources()
                     syncSourcesUI()
                 }
@@ -289,7 +293,6 @@ function saveValue(key, value) {
 function load(key) {
     const path = `${key}.json`
     const data = localStorage.getItem(path)
-    console.log('got data for ' + key, data)
     return data ? JSON.parse(data) : null
 }
 
