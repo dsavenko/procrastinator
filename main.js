@@ -32,8 +32,9 @@ let delMode = false
 let loadingSources = []
 let config = {...DEFAULT_CONFIG}
 
-let remoteStorage
-let remoteClient
+function defaultSources() {
+    return ($.i18n().locale.startsWith('ru') ? DEFAULT_SOURCES : DEFAULT_SOURCES_EN).map(s => ({...s}))
+}
 
 function nothingEntry() {
     return {
@@ -59,32 +60,12 @@ function welcomeEntry() {
     }
 }
 
-async function cleanShown(listing) {
-    const keys = Object.keys(listing)
-    if (MAX_SHOWN_COUNT <= keys.length) {
-        console.log('Too many shown entries, cleaning')
-        for (let i = 0; i < keys.length; i += 2) {
-            await remoteClient.remove('shown/' + keys[i])
-        }
-        console.log('Cleaned excessive shown entries')
+function rememberShown(entry) {
+    try {
+        localStorage.setItem(`shown/${md5(entry.url)}`, '')
+    } catch(e) {
+        console.log(`Failed to remember entry ${entry.url}`, e)
     }
-}
-
-async function rememberShown(entry) {
-    const path = 'shown/' + md5(entry.url)
-    return remoteClient.storeFile('text/plain', path, '1') // because remoteStorage.js doesn't like empty files
-}
-
-async function filterShown(newEntries) {
-    if (0 >= newEntries.length) {
-        return newEntries
-    }
-    return remoteClient.getListing('shown/')
-        .then(listing => {
-            const ret = listing ? newEntries.filter(e => !listing[md5(e.url)]) : newEntries
-            cleanShown(listing)
-            return ret
-        })
 }
 
 function shuffle(a) {
@@ -104,9 +85,8 @@ function isSourceOn(name) {
     return source && source.on
 }
 
-async function filterEntries(newEntries) {
-    const unseenEntries = await filterShown(newEntries)
-    return unseenEntries.filter(e => isSourceOn(e.sourceName))
+function filterEntries(newEntries) {
+    return newEntries.filter(e => isSourceOn(e.sourceName))
 }
 
 function htmlDecode(value) {
@@ -154,11 +134,11 @@ async function loadRssSource(name, url) {
     })
 }
 
-async function addEntries(sourceName, newEntries) {
+function addEntries(sourceName, newEntries) {
     if (!isSourceOn(sourceName)) {
         return
     }
-    const filteredEntries = await filterEntries(newEntries)
+    const filteredEntries = filterEntries(newEntries)
     const old = entries.length
     entries = entries.concat(filteredEntries)
     shuffle(entries)
@@ -296,77 +276,47 @@ async function onToggleButClick() {
     }
 }
 
-async function saveValue(key, value) {
-    return remoteClient.storeFile('application/json', `${key}.json`, JSON.stringify(value))
-        .then(() => console.log(`Saved ${key}`))
-        .catch(e => console.log(`Failed to save ${key}`, e))
+function saveValue(key, value) {
+    try {
+        const path = `${key}.json`
+        localStorage.setItem(path, JSON.stringify(value))
+        console.log(`Saved ${key}`)
+    } catch(e) {
+        console.log(`Failed to save ${key}`, e)
+    }
 }
 
-async function load(key) {
-    return remoteClient.getFile(`${key}.json`)
-        .then(file => {
-            try {
-                return file ? JSON.parse(file.data) : null
-            } catch(e) {
-                console.log(`Failed to load ${key}`, e)
-                return null
-            }
-        })
+function load(key) {
+    const path = `${key}.json`
+    const data = localStorage.getItem(path)
+    console.log('got data for ' + key, data)
+    return data ? JSON.parse(data) : null
 }
 
-async function saveSources() {
+function saveSources() {
     saveValue('sources', sources)
 }
 
-async function saveConfig() {
+function saveConfig() {
     saveValue('config', config)
 }
 
-async function loadConfig() {
-    config = (await load('config')) || {...DEFAULT_CONFIG}
+function loadConfig() {
+    config = load('config') || {...DEFAULT_CONFIG}
     if (config.locale && SUPPORTED_LOCALES.includes(config.locale)) {
         $.i18n().locale = config.locale
         syncLangBut()
         console.log('Set locale from config', $.i18n().locale)
     }
     if (!config.welcomeShown) {
-        if (!remoteStorage.remote.userAddress) {
-            setEntry(welcomeEntry())
-        }        
+        setEntry(welcomeEntry())
         config.welcomeShown = true
         saveConfig()
     }
 }
 
-async function onChange(e) {
-    let validChanges = false
-    if ('sources.json' == e.relativePath) {
-        const newSources = e.newValue.filter(s => {
-            const oldSource = findSource(s.name)
-            return !oldSource || (s.on && !oldSource.on)
-        })
-        sources = e.newValue
-        newSources.forEach(s => loadSource(s))
-        syncSourcesUI()
-        validChanges = true
-    }
-    if (validChanges) {
-        entries = await filterEntries(entries)
-        console.log(`${e.origin} changes to ${e.relativePath} received and handled`)
-    }
-}
-
-function initStorage() {
-    remoteStorage = new RemoteStorage()
-    //remoteStorage.enableLog()
-    remoteStorage.setApiKeys({googledrive: '1078139606-9nh42gv73t49sm2qj3c2dutritjho4oo.apps.googleusercontent.com'})
-    remoteStorage.access.claim('procrastinator', 'rw')
-    remoteStorage.caching.enable('/procrastinator/')
-    remoteStorage.caching.disable('/procrastinator/shown/')
-    remoteClient = remoteStorage.scope('/procrastinator/')
-    remoteClient.on('change', onChange)
-    const widget = new Widget(remoteStorage, {leaveOpen: true})
-    widget.attach('loginHolder')
+function loadSources() {
+    sources = load('sources') || defaultSources()
 }
 
 function addSource() {
@@ -403,7 +353,7 @@ function addSource() {
 
 function resetSources() {
     if (confirm($.i18n('reset-confirm'))) {
-        sources = DEFAULT_SOURCES.map(s => ({...s}))
+        sources = defaultSources()
         delMode = false
         saveSources()
         syncSourcesUI()
@@ -470,14 +420,11 @@ document.addEventListener('keyup', e => {
 })
 
 syncLangBut()
-initStorage()
 loadConfig()
-    .catch(e => console.log('Failed to load config', e))
-    .finally(() => $.i18n().load(PROC_MESSAGES))
-    .then(() => {
-        applyLocale()
-        syncSourcesUI()
-        setEntry(loadingEntry())
-        hideSplash()
-        loadEntries()
-    })
+$.i18n().load(PROC_MESSAGES)
+loadSources()
+applyLocale()
+syncSourcesUI()
+setEntry(loadingEntry())
+hideSplash()
+loadEntries()
