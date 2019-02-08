@@ -19,6 +19,8 @@ const PROC_MESSAGES = {
 
         'loading-entry-title': 'Loading...',
 
+        'loading-failed-alert': 'Failed to load the "$1" source. Please, try again later',
+
         'welcome-entry-title': 'Hi, this is Procrastinator!',
         'welcome-entry-html':
             '<p>Procrastinator gathers news and articles from other resources and shows them one by one. ' + 
@@ -61,6 +63,8 @@ const PROC_MESSAGES = {
         'nothing-entry-html': '<center>Включите дополнительные ресурсы в настройках, или зайдите позже.</center>',
 
         'loading-entry-title': 'Загружаю...',
+
+        'loading-failed-alert': 'Не удалось загрузить источник "$1". Может быть, получиться позднее?',
 
         'welcome-entry-title': 'Привет, это Прокрастинатор!',
         'welcome-entry-html':

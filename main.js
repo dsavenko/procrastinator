@@ -173,7 +173,10 @@ function loadSource(source) {
         loadingSources.push(source.name)
         loadRssSource(source.name, source.url)
             .then(newEntries => addEntries(source.name, newEntries))
-            .catch(e => console.log(`Failed to load ${source.name}`, e))
+            .catch(e => {
+                console.log(`Failed to load ${source.name}`, e)
+                alert($.i18n('loading-failed-alert', source.name))
+            })
             .finally(() => {
                 removeA(loadingSources, source.name)
                 loadFirstEntry()
