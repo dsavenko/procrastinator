@@ -21,9 +21,11 @@ const DEFAULT_SOURCES_EN = [
 ]
 const DEFAULT_CONFIG = {welcomeShown: false}
 const DUMMY_URL = 'dummy'
-const MAX_SHOWN_COUNT = 10000
+const MAX_STORAGE_LEN = 10000
 const SUPPORTED_LOCALES = ['en', 'ru']
 const MAX_NAME_LEN = 10
+const CONFIG_STORAGE_KEY = 'config'
+const SOURCES_STORAGE_KEY = 'sources'
 
 let entries = []
 let currentEntry = {}
@@ -62,6 +64,7 @@ function welcomeEntry() {
 
 function rememberShown(entry) {
     try {
+        ensureStorageLength()
         localStorage.setItem(`shown/${md5(entry.url)}`, '')
     } catch(e) {
         console.log(`Failed to remember entry ${entry.url}`, e)
@@ -280,8 +283,9 @@ function onToggleButClick() {
     }
 }
 
-function saveValue(key, value) {
+function save(key, value) {
     try {
+        ensureStorageLength()
         const path = `${key}.json`
         localStorage.setItem(path, JSON.stringify(value))
         console.log(`Saved ${key}`)
@@ -297,15 +301,30 @@ function load(key) {
 }
 
 function saveSources() {
-    saveValue('sources', sources)
+    save(SOURCES_STORAGE_KEY, sources)
 }
 
 function saveConfig() {
-    saveValue('config', config)
+    save(CONFIG_STORAGE_KEY, config)
+}
+
+function ensureStorageLength() {
+    if (MAX_STORAGE_LEN <= localStorage.length) {
+        console.log(`Storage length is too high (${localStorage.length}), clearing storage`)
+        const storedConfig = load(CONFIG_STORAGE_KEY)
+        const storedSources = load(SOURCES_STORAGE_KEY)
+        localStorage.clear()
+        if (null != storedConfig) {
+            save(CONFIG_STORAGE_KEY, storedConfig)
+        }
+        if (null != storedSources) {
+            save(SOURCES_STORAGE_KEY, storedSources)
+        }
+    }
 }
 
 function loadConfig() {
-    config = load('config') || {...DEFAULT_CONFIG}
+    config = load(CONFIG_STORAGE_KEY) || {...DEFAULT_CONFIG}
     if (config.locale && SUPPORTED_LOCALES.includes(config.locale)) {
         $.i18n().locale = config.locale
         syncLangBut()
@@ -319,7 +338,7 @@ function loadConfig() {
 }
 
 function loadSources() {
-    sources = load('sources') || defaultSources()
+    sources = load(SOURCES_STORAGE_KEY) || defaultSources()
 }
 
 function addSource() {
