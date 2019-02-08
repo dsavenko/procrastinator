@@ -1,6 +1,6 @@
 ## Hi, this is Procrastinator!
 
-<p>Procrastinator gathers news and articles from other resources and shows them one by one. <b>Just hit &laquo;NEXT&raquo; or spacebar.</b> Hit the article itself to see the original.</p>
+<p><a href="http://dsavenko.com/procrastinator" target="_blank">Procrastinator</a> gathers news and articles from other resources and shows them one by one. <b>Just hit &laquo;NEXT&raquo; or spacebar.</b> Hit the article itself to see the original.</p>
 
 <p>Procrastinator remembers articles you've seen and doesn't show them again.</p>
 
