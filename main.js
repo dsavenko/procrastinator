@@ -67,17 +67,30 @@ function welcomeEntry() {
     }
 }
 
+function shownHash(entry) {
+    return `shown-${md5(entry.url)}`
+}
+
 function rememberShown(entry) {
     try {
         ensureStorageLength()
-        localStorage.setItem(`shown/${md5(entry.url)}`, '')
+        const name = shownHash(entry)
+        localStorage.setItem(name, '')
+        if (isLoggedIn()) {
+            gapi.client.drive.files.create({
+                resource: {name: name, mimeType: 'text/plain', parents: ['appDataFolder']},
+                fields: 'id'
+            }).then(resp => {
+                if (resp.status != 200) {
+                    console.log('Failed to remember in Google', resp)
+                }
+            }, err => {
+                console.log('Failed to remember in Google', err)
+            })
+        }
     } catch(e) {
         console.log(`Failed to remember entry ${entry.url}`, e)
     }
-}
-
-function isShown(entry) {
-    return null != localStorage.getItem(`shown/${md5(entry.url)}`)
 }
 
 function shuffle(a) {
@@ -95,10 +108,6 @@ function findSource(name) {
 function isSourceOn(name) {
     const source = findSource(name)
     return source && source.on
-}
-
-function filterEntries(newEntries) {
-    return newEntries.filter(e => isSourceOn(e.sourceName) && !isShown(e))
 }
 
 function htmlDecode(value) {
@@ -146,11 +155,57 @@ async function loadRssSource(name, url) {
     })
 }
 
-function addEntries(sourceName, newEntries) {
+function isShown(entry) {
+    return null != localStorage.getItem(shownHash(entry))
+}
+
+function filterEntries(newEntries) {
+    return newEntries.filter(e => isSourceOn(e.sourceName) && !isShown(e))
+}
+
+async function syncShown(newEntries) {
+    if (0 >= newEntries.length || !isLoggedIn()) {
+        return
+    }
+
+    async function syncStep(stepEntries) {
+        const query = stepEntries.map(e => `name = '${shownHash(e)}'`).reduce((a, c) => `${a} or ${c}`)
+        return new Promise(resolve => {
+            gapi.client.drive.files.list({
+                spaces: 'appDataFolder',
+                fields: 'files(name)',
+                pageSize: 500,
+                q: query
+            }).then(resp => {
+                if (resp.status == 200) {
+                    resp.result.files.forEach(f => localStorage.setItem(f.name, ''))
+                } else {
+                    console.log('Got error status from Google while syncing', resp)
+                }
+                resolve()
+            }, err => {
+                console.log('Eror fetching from Google for entries', stepEntries, err)
+                resolve()
+            })
+        })
+    }
+
+
+    const count = 30
+    for (let i = 0; i < newEntries.length; i += count) {
+        await syncStep(newEntries.slice(i, i + count))
+    }
+}
+
+async function addEntries(sourceName, newEntries) {
     if (!isSourceOn(sourceName)) {
         return
     }
-    const filteredEntries = filterEntries(newEntries)
+    // filter before syncing to sync less
+    let filteredEntries = filterEntries(newEntries)
+    await syncShown(filteredEntries)
+    // filter again after syncing
+    filteredEntries = filterEntries(filteredEntries)
     const old = entries.length
     entries = entries.concat(filteredEntries)
     shuffle(entries)
@@ -171,6 +226,7 @@ function removeA(arr) {
 function loadSource(source) {
     if (source && isSourceOn(source.name) && !loadingSources.includes(source.name)) {
         loadingSources.push(source.name)
+        loadFirstEntry()
         loadRssSource(source.name, source.url)
             .then(newEntries => addEntries(source.name, newEntries))
             .catch(e => {
@@ -420,9 +476,17 @@ function syncLangBut() {
     }
 }
 
+function isGapiLoaded() {
+    return gapi && gapi.auth2
+}
+
+function isLoggedIn() {
+    return isGapiLoaded() && gapi.auth2.getAuthInstance().isSignedIn.get()
+}
+
 function syncLogInBut() {
-    if (gapi && gapi.auth2) {
-        if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
+    if (isGapiLoaded()) {
+        if (isLoggedIn()) {
             $(googleBut).text($.i18n('google-logout'))
         } else {
             $(googleBut).text($.i18n('google-login'))
@@ -445,23 +509,6 @@ function hideSplash() {
     $(splash).hide()
 }
 
-function initClient() {
-    gapi.client.init({
-        apiKey: GOOGLE_API_KEY,
-        clientId: GOOGLE_CLIENT_ID,
-        discoveryDocs: GOOGLE_DISCOVERY_DOCS,
-        scope: GOOGLE_SCOPES
-    }).then(function () {
-        // Listen for sign-in state changes.
-        gapi.auth2.getAuthInstance().isSignedIn.listen(syncLogInBut)
-        // Handle the initial sign-in state.
-        syncLogInBut()
-        googleBut.onclick = onGoogleButClick
-    }, function(error) {
-        console.log('Failed to init GAPI client', error)
-    })
-}
-
 function onGoogleButClick() {
     if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
         if (confirm($.i18n('google-logout-confirm'))) {
@@ -472,29 +519,49 @@ function onGoogleButClick() {
     }
 }
 
-logoBut.onclick = onLogoButClick
-moreBut.onclick = onMoreButClick
-entryBut.onclick = onEntryButClick
-settingsBut.onclick = onSettingsButClick
-langBut.onclick = onLangButClick
+function initApp() {
+    logoBut.onclick = onLogoButClick
+    moreBut.onclick = onMoreButClick
+    entryBut.onclick = onEntryButClick
+    settingsBut.onclick = onSettingsButClick
+    langBut.onclick = onLangButClick
 
-addBut.onclick = addSource
-deleteBut.onclick = toggleDelMode
-resetBut.onclick = resetSources
-showAddBut.onclick = toggleAddCont
+    addBut.onclick = addSource
+    deleteBut.onclick = toggleDelMode
+    resetBut.onclick = resetSources
+    showAddBut.onclick = toggleAddCont
 
-document.addEventListener('keyup', e => {
-    if (32 == e.which) {
-        onMoreButClick()
-    }
-})
+    document.addEventListener('keyup', e => {
+        if (32 == e.which) {
+            onMoreButClick()
+        }
+    })
 
-syncLangBut()
-loadConfig()
-$.i18n().load(PROC_MESSAGES)
-loadSources()
-applyLocale()
-syncSourcesUI()
-setEntry(loadingEntry())
-hideSplash()
-loadEntries()
+    syncLogInBut()
+    syncLangBut()
+    loadConfig()
+    $.i18n().load(PROC_MESSAGES)
+    loadSources()
+    applyLocale()
+    syncSourcesUI()
+    setEntry(loadingEntry())
+    hideSplash()
+    loadEntries()
+}
+
+function initClient() {
+    gapi.client.init({
+        apiKey: GOOGLE_API_KEY,
+        clientId: GOOGLE_CLIENT_ID,
+        discoveryDocs: GOOGLE_DISCOVERY_DOCS,
+        scope: GOOGLE_SCOPES
+    }).then(function () {
+        // Listen for sign-in state changes.
+        gapi.auth2.getAuthInstance().isSignedIn.listen(syncLogInBut)
+        // Handle the initial sign-in state.
+        googleBut.onclick = onGoogleButClick
+        initApp()
+    }, function(error) {
+        console.log('Failed to init GAPI client', error)
+    })
+}

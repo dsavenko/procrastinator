@@ -55,7 +55,7 @@ const PROC_MESSAGES = {
         'addr-placeholder': 'Адрес RSS',
         'ok-btn': 'OK',
 
-        'google-login': 'Зайти через Google',
+        'google-login': 'Войти через Google',
         'google-logout': 'Выйти',
         'google-logout-confirm': 'Правда выйти?',
 
