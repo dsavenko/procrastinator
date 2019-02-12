@@ -455,7 +455,7 @@ async function loadSources() {
     sources = load(SOURCES_STORAGE_KEY) || defaultSources()
     if (isLoggedIn() && config.sourcesId) {
         try {
-            sources = await downloadObj(config.sourcesId)
+            sources = (await downloadObj(config.sourcesId)) || sources
             save(SOURCES_STORAGE_KEY, sources)
         } catch(e) {
             console.log('Failed to download sources', e)
