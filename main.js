@@ -71,22 +71,51 @@ function shownHash(entry) {
     return `shown-${md5(entry.url)}`
 }
 
+async function prom(gapiCall, argObj) {
+    return new Promise((resolve, reject) => {
+        gapiCall(argObj).then(resp => {
+            if (resp && resp.status != 200) {
+                console.log('GAPI call returned bad status (call, args, response):', gapiCall, argObj, resp)
+                reject(resp)
+            } else {
+                resolve(resp)
+            }
+        }, err => {
+            console.log('GAPI call failed (call, args, response):', gapiCall, argObj, err)
+            reject(err)
+        })
+    })
+}
+
+async function createEmptyFile(name, mimeType) {
+    const resp = await prom(gapi.client.drive.files.create, {
+        resource: {name: name, mimeType: mimeType || 'text/plain', parents: ['appDataFolder']},
+        fields: 'id'
+    })
+    return resp.result.id
+}
+
+async function uploadObj(fileId, contentObject) {
+    return prom(gapi.client.request, {
+        path: `/upload/drive/v3/files/${fileId}`,
+        method: 'PATCH',
+        params: {uploadType: 'media'},
+        body: JSON.stringify(contentObject)
+    })
+}
+
+async function downloadObj(fileId) {
+    const resp = await prom(gapi.client.drive.files.get, {fileId: fileId, alt: 'media'})
+    return resp.result
+}
+
 function rememberShown(entry) {
     try {
         ensureStorageLength()
         const name = shownHash(entry)
         localStorage.setItem(name, '')
         if (isLoggedIn()) {
-            gapi.client.drive.files.create({
-                resource: {name: name, mimeType: 'text/plain', parents: ['appDataFolder']},
-                fields: 'id'
-            }).then(resp => {
-                if (resp.status != 200) {
-                    console.log('Failed to remember in Google', resp)
-                }
-            }, err => {
-                console.log('Failed to remember in Google', err)
-            })
+            createEmptyFile(name)
         }
     } catch(e) {
         console.log(`Failed to remember entry ${entry.url}`, e)
@@ -170,26 +199,18 @@ async function syncShown(newEntries) {
 
     async function syncStep(stepEntries) {
         const query = stepEntries.map(e => `name = '${shownHash(e)}'`).reduce((a, c) => `${a} or ${c}`)
-        return new Promise(resolve => {
-            gapi.client.drive.files.list({
+        try {
+            const resp = await prom(gapi.client.drive.files.list, {
                 spaces: 'appDataFolder',
                 fields: 'files(name)',
                 pageSize: 500,
                 q: query
-            }).then(resp => {
-                if (resp.status == 200) {
-                    resp.result.files.forEach(f => localStorage.setItem(f.name, ''))
-                } else {
-                    console.log('Got error status from Google while syncing', resp)
-                }
-                resolve()
-            }, err => {
-                console.log('Eror fetching from Google for entries', stepEntries, err)
-                resolve()
             })
-        })
+            resp.result.files.forEach(f => localStorage.setItem(f.name, ''))
+        } catch (e) {
+            console.log('Error fetching from Google for entries', stepEntries, err)
+        }
     }
-
 
     const count = 30
     for (let i = 0; i < newEntries.length; i += count) {
@@ -364,8 +385,11 @@ function load(key) {
     return data ? JSON.parse(data) : null
 }
 
-function saveSources() {
+async function saveSources() {
     save(SOURCES_STORAGE_KEY, sources)
+    if (isLoggedIn() && config.sourcesId) {
+        return uploadObj(config.sourcesId, sources)
+    }    
 }
 
 function saveConfig() {
@@ -387,8 +411,34 @@ function ensureStorageLength() {
     }
 }
 
-function loadConfig() {
+async function syncSourcesId() {
+    if (!isLoggedIn || config.sourcesId) {
+        return
+    }
+    const sourcesName = SOURCES_STORAGE_KEY + '.json'
+    try {
+        let resp = await prom(gapi.client.drive.files.list, {
+            spaces: 'appDataFolder',
+            fields: 'files(id, name)',
+            pageSize: 500,
+            q: `name = '${sourcesName}'`,
+            orderBy: 'createdTime'
+        })
+        if (0 < resp.result.files.length) {
+            config.sourcesId = resp.result.files[0].id
+        } else {
+            config.sourcesId = await createEmptyFile(sourcesName, 'application/json')
+            saveSources()
+        }
+        saveConfig()
+    } catch(e) {
+        console.log('Error fetching config IDs from Google', e)
+    }
+}
+
+async function loadConfig() {
     config = load(CONFIG_STORAGE_KEY) || {...DEFAULT_CONFIG}
+    await syncSourcesId()
     if (config.locale && SUPPORTED_LOCALES.includes(config.locale)) {
         $.i18n().locale = config.locale
         syncLangBut()
@@ -401,8 +451,16 @@ function loadConfig() {
     }
 }
 
-function loadSources() {
+async function loadSources() {
     sources = load(SOURCES_STORAGE_KEY) || defaultSources()
+    if (isLoggedIn() && config.sourcesId) {
+        try {
+            sources = await downloadObj(config.sourcesId)
+            save(SOURCES_STORAGE_KEY, sources)
+        } catch(e) {
+            console.log('Failed to download sources', e)
+        }
+    }
 }
 
 function addSource() {
@@ -519,7 +577,7 @@ function onGoogleButClick() {
     }
 }
 
-function initApp() {
+async function initApp() {
     logoBut.onclick = onLogoButClick
     moreBut.onclick = onMoreButClick
     entryBut.onclick = onEntryButClick
@@ -539,9 +597,9 @@ function initApp() {
 
     syncLogInBut()
     syncLangBut()
-    loadConfig()
+    await loadConfig()
     $.i18n().load(PROC_MESSAGES)
-    loadSources()
+    await loadSources()
     applyLocale()
     syncSourcesUI()
     setEntry(loadingEntry())
@@ -560,7 +618,7 @@ function initClient() {
         gapi.auth2.getAuthInstance().isSignedIn.listen(syncLogInBut)
         // Handle the initial sign-in state.
         googleBut.onclick = onGoogleButClick
-        initApp()
+        initApp().catch(e => console.log('Error initializing the app', e))
     }, function(error) {
         console.log('Failed to init GAPI client', error)
     })
