@@ -207,7 +207,7 @@ async function syncShown(newEntries) {
                 q: query
             })
             resp.result.files.forEach(f => localStorage.setItem(f.name, ''))
-        } catch (e) {
+        } catch (err) {
             console.log('Error fetching from Google for entries', stepEntries, err)
         }
     }
