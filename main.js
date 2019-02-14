@@ -33,6 +33,7 @@ const CONFIG_STORAGE_KEY = 'config'
 const SOURCES_STORAGE_KEY = 'sources'
 
 let entries = []
+let previousEntry
 let currentEntry = {}
 let sources = DEFAULT_SOURCES.map(s => ({...s}))
 let delMode = false
@@ -267,7 +268,11 @@ function loadEntries() {
     sources.forEach(s => loadSource(s))
 }
 
-function setEntry(e) {
+function isRealUrl(url) {
+    return url && url !== DUMMY_URL
+}
+
+function setEntry(e, noPrevious) {
     e = e || {}
     titleCont.innerText = e.title || ''
     imgTag.src = e.imageUrl || ''
@@ -278,8 +283,15 @@ function setEntry(e) {
     }
     entryBut.dataset.url = e.url || ''
     entryCont.scrollTop = 0
-    if (e.url && e.url !== DUMMY_URL) {
+    if (isRealUrl(e.url)) {
         rememberShown(e)
+    }
+    if (!noPrevious && isRealUrl(currentEntry.url)) {
+        previousEntry = currentEntry
+        $(previousBut).removeClass('invisible')
+    } else {
+        previousEntry = null
+        $(previousBut).addClass('invisible')
     }
     currentEntry = e
 }
@@ -296,6 +308,15 @@ function onLogoButClick() {
     setEntry(welcomeEntry())
 }
 
+function onPreviousButClick() {
+    if (previousEntry) {
+        if (currentEntry) {
+            entries.unshift(currentEntry)
+        }
+        setEntry(previousEntry, true)
+    }
+}
+
 function onMoreButClick() {
     setEntry(pickEntry())
 }
@@ -308,7 +329,7 @@ function loadFirstEntry() {
 
 function onEntryButClick() {
     const url = entryBut.dataset.url
-    if (url && url !== DUMMY_URL) {
+    if (isRealUrl(url)) {
         window.open(url, '_blank')
     }
 }
@@ -581,6 +602,7 @@ function onGoogleButClick() {
 async function initApp(args) {
     logoBut.onclick = onLogoButClick
     moreBut.onclick = onMoreButClick
+    previousBut.onclick = onPreviousButClick
     entryBut.onclick = onEntryButClick
     settingsBut.onclick = onSettingsButClick
     langBut.onclick = onLangButClick
