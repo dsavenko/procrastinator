@@ -20,6 +20,7 @@ const PROC_MESSAGES = {
         'loading-entry-title': 'Loading...',
 
         'loading-failed-alert': 'Failed to load the "$1" source. Please, try again later',
+        'google-init-failed-alert': 'Rejected by Google :( Logging in via Google won\'t work.',
 
         'welcome-entry-title': 'Hi, this is Procrastinator!',
         'welcome-entry-html':
@@ -65,6 +66,7 @@ const PROC_MESSAGES = {
         'loading-entry-title': 'Загружаю...',
 
         'loading-failed-alert': 'Не удалось загрузить источник "$1". Может быть, получиться позднее?',
+        'google-init-failed-alert': 'Google нас отверг :( Вход через Google не будет работать.',
 
         'welcome-entry-title': 'Привет, это Прокрастинатор!',
         'welcome-entry-html':

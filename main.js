@@ -577,7 +577,7 @@ function onGoogleButClick() {
     }
 }
 
-async function initApp() {
+async function initApp(args) {
     logoBut.onclick = onLogoButClick
     moreBut.onclick = onMoreButClick
     entryBut.onclick = onEntryButClick
@@ -599,6 +599,9 @@ async function initApp() {
     syncLangBut()
     await loadConfig()
     $.i18n().load(PROC_MESSAGES)
+    if (args && args.showAlert) {
+        alert($.i18n(args.showAlert))
+    }
     await loadSources()
     applyLocale()
     syncSourcesUI()
@@ -621,5 +624,6 @@ function initClient() {
         initApp().catch(e => console.log('Error initializing the app', e))
     }, function(error) {
         console.log('Failed to init GAPI client', error)
+        initApp({showAlert: 'google-init-failed-alert'}).catch(e => console.log('Error initializing the app', e))
     })
 }
