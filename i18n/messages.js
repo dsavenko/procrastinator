@@ -3,6 +3,7 @@ const PROC_MESSAGES = {
     en: {
         'title': 'Procrastinator',
         'more-btn': 'NEXT',
+        'check-again-btn': 'CHECK AGAIN',
         'add-btn': 'Add',
         'delete-btn': 'Delete',
         'reset-btn': 'Reset',
@@ -49,6 +50,7 @@ const PROC_MESSAGES = {
     ru: {
         'title': 'Прокрастинатор',
         'more-btn': 'ДАЛЬШЕ',
+        'check-again-btn': 'ПРОВЕРЬ СНОВА',
         'add-btn': 'Добавить',
         'delete-btn': 'Удалить',
         'reset-btn': 'Сбросить',

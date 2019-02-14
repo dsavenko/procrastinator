@@ -48,7 +48,8 @@ function nothingEntry() {
     return {
         title: $.i18n('nothing-entry-title'),
         html: $.i18n('nothing-entry-html'),
-        rebuild: nothingEntry
+        rebuild: nothingEntry,
+        checkAgain: true
     }
 }
 
@@ -293,6 +294,7 @@ function setEntry(e, noPrevious) {
         previousEntry = null
         $(previousBut).addClass('invisible')
     }
+    $(moreBut).text($.i18n(e.checkAgain ? 'check-again-btn' : 'more-btn'))
     currentEntry = e
 }
 
@@ -318,12 +320,17 @@ function onPreviousButClick() {
 }
 
 function onMoreButClick() {
-    setEntry(pickEntry())
+    if (currentEntry.checkAgain) {
+        loadEntries()
+        setEntry(loadingEntry())
+    } else {
+        setEntry(pickEntry())
+    }
 }
 
 function loadFirstEntry() {
     if (!currentEntry.url) {
-        onMoreButClick()
+        setEntry(pickEntry())
     }
 }
 
