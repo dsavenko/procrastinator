@@ -317,7 +317,8 @@ function onSettingsButClick() {
     if (!$(addCont).hasClass('hidden')) {
         toggleAddCont()
     }
-    $(".gear-menu").toggleClass('hidden')
+    $('.gear-menu').toggleClass('hidden')
+    $(settingsBut).toggleClass('enabled')
 }
 
 function getImgSrc(source) {
