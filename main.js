@@ -142,7 +142,22 @@ function isSourceOn(name) {
 }
 
 function htmlDecode(value) {
-    return $('<textarea/>').html(value).text()
+    let str = value
+    // remove all inside SCRIPT and STYLE tags
+    str = str.replace(/<script\b[^>]*>[\w\W]{1,}(.*?)[\w\W]{1,}<\/script>/gi, '')
+    str = str.replace(/<style\b[^>]*>[\w\W]{1,}(.*?)[\w\W]{1,}<\/style>/gi, '')
+    // replace p and br with line breaks
+    str = str.replace(/<\s*p\b[^>]*>/gi, '\n\n')
+    str = str.replace(/<\s*br\b[^>]*>/gi, '\n')
+    // remove other tags
+    str = str.replace(/<(?:.|\s)*?>/g, '')
+    // get rid of more than 2 line breaks
+    str = str.replace(/(?:(?:\r\n|\r|\n)\s*){2,}/gim, '\n\n')
+    // get rid of more than 2 spaces
+    str = str.replace(/ +(?= )/g,'')
+    // convert html-encoded entities
+    str = $('<textarea/>').html(str).text()
+    return str
 }
 
 function extractImageFromHtml(content) {
@@ -178,7 +193,7 @@ async function loadRssSource(name, url) {
         }
         return {
             title: htmlDecode(e.title),
-            text: htmlDecode(e.contentSnippet),
+            text: htmlDecode(e.content),
             imageUrl: imageUrl,
             url: e.link,
             sourceName: name
