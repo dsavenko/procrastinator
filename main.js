@@ -281,7 +281,11 @@ function loadSource(source) {
 }
 
 function loadEntries() {
-    sources.forEach(s => loadSource(s))
+    if (sources.find(s => s.on)) {
+        sources.forEach(s => loadSource(s))
+    } else {
+        loadFirstEntry()
+    }
 }
 
 function isRealUrl(url) {
@@ -337,7 +341,6 @@ function onPreviousButClick() {
 function onMoreButClick() {
     if (currentEntry.checkAgain) {
         loadEntries()
-        setEntry(loadingEntry())
     } else {
         setEntry(pickEntry())
     }
@@ -650,9 +653,8 @@ async function initApp(args) {
     await loadSources()
     applyLocale()
     syncSourcesUI()
-    setEntry(loadingEntry())
-    hideSplash()
     loadEntries()
+    hideSplash()
 }
 
 function initClient() {
