@@ -295,7 +295,12 @@ function isRealUrl(url) {
 function setEntry(e, noPrevious) {
     e = e || {}
     titleCont.innerText = e.title || ''
-    imgTag.src = e.imageUrl || ''
+    if (isRealUrl(e.imageUrl)) {
+        imgTag.src = e.imageUrl
+        $(imgTag).removeClass('hidden')
+    } else {
+        $(imgTag).addClass('hidden')
+    }
     if (e.html) {
         textCont.innerHTML = e.html
     } else {
