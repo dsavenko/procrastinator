@@ -142,7 +142,7 @@ function isSourceOn(name) {
 }
 
 function htmlDecode(value) {
-    let str = value
+    let str = value || ''
     // remove all inside SCRIPT and STYLE tags
     str = str.replace(/<script\b[^>]*>[\w\W]{1,}(.*?)[\w\W]{1,}<\/script>/gi, '')
     str = str.replace(/<style\b[^>]*>[\w\W]{1,}(.*?)[\w\W]{1,}<\/style>/gi, '')
