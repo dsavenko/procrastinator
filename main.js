@@ -9,7 +9,7 @@ const GOOGLE_CLIENT_ID = '1078139606-9nh42gv73t49sm2qj3c2dutritjho4oo.apps.googl
 const GOOGLE_DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
 const GOOGLE_SCOPES = 'https://www.googleapis.com/auth/drive.appfolder'
 
-const CORS_PROXY = 'https://cors-anywhere.herokuapp.com/'
+const CORS_PROXY = 'https://proc-cors-eu.herokuapp.com/'
 const DEFAULT_SOURCES = [
     {name: 'Lenta', on: true, url: 'https://lenta.ru/rss'},
     {name: 'Meduza', on: true, url: 'https://meduza.io/rss/all'},
