@@ -164,6 +164,12 @@
         .pulsate {
             animation: heartbeat 1s infinite;
         }
+        .hint {
+            font-size: smaller;
+        }
+        .input-field > input {
+            width: 100%;
+        }
     </style>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-131902348-1"></script>
@@ -208,8 +214,14 @@
             <div id="resetBut" data-i18n="reset-btn">Reset</div>
         </div>
         <div id="addCont" class="ribbon flex wrap center hidden">
-            <div><input id="nameInput" type="text" data-i18n="[placeholder]name-placeholder" maxlength="10"></div>
-            <div><input id="urlInput" type="url" data-i18n="[placeholder]addr-placeholder"></div>
+            <div class="input-field">
+                <input id="nameInput" type="text" data-i18n="[placeholder]name-placeholder" maxlength="10">
+                <div class="hint" data-i18n="name-hint"></div>
+            </div>
+            <div class="input-field">
+                <input id="urlInput" type="url" data-i18n="[placeholder]addr-placeholder">
+                <div class="hint" data-i18n="addr-hint"></div>
+            </div>
             <div id="addBut" data-i18n="ok-btn">OK</div>
         </div>
         <div id="loginCont" class="ribbon flex wrap center gear-menu hidden">

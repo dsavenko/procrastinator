@@ -7,9 +7,12 @@ const PROC_MESSAGES = {
         'add-btn': 'Add',
         'delete-btn': 'Delete',
         'reset-btn': 'Reset',
-        'name-placeholder': 'Name (up to 10 chars)',
-        'addr-placeholder': 'RSS address',
         'ok-btn': 'OK',
+
+        'name-placeholder': 'Name',
+        'name-hint': 'unique, up to 10 chars',
+        'addr-placeholder': 'Address',
+        'addr-hint': 'Web address or RSS address',
 
         'google-login': 'Log in via Google',
         'google-logout': 'Log out',
@@ -54,9 +57,12 @@ const PROC_MESSAGES = {
         'add-btn': 'Добавить',
         'delete-btn': 'Удалить',
         'reset-btn': 'Сбросить',
-        'name-placeholder': 'Имя (до 10 знаков)',
-        'addr-placeholder': 'Адрес RSS',
         'ok-btn': 'OK',
+
+        'name-placeholder': 'Имя',
+        'name-hint': 'уникальное, до 10 знаков',
+        'addr-placeholder': 'Адрес',
+        'addr-hint': 'адрес сайта (или адрес RSS)',
 
         'google-login': 'Войти через Google',
         'google-logout': 'Выйти',

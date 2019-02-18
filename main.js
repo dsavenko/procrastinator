@@ -167,13 +167,33 @@ function extractImageFromHtml(content) {
     }
 }
 
+function extractRssLink(html) {
+    const newDoc = new DOMParser().parseFromString(html, 'text/html')
+    return $(newDoc).find('link[type="application/rss+xml"]').attr('href')
+}
+
 async function loadRssSource(name, url) {
     const parser = new RSSParser({
         customFields: {
             item: ['media:group', 'media:content', 'media:thumbnail']
         }
     })
-    const feed = await parser.parseURL(CORS_PROXY + url)
+    let resp = await fetch(CORS_PROXY + url)
+    if (!resp.ok) {
+        throw new Error(`Error response from server: ${resp.statusText}`)
+    }
+    const contentType = (resp.headers.get('content-type') || '').toLowerCase()
+    let text = await resp.text()
+    if (contentType.includes('text/html')) {
+        const rssLink = extractRssLink(text)
+        console.log(`found RSS link for ${name}: ${rssLink}`)
+        resp = await fetch(CORS_PROXY + rssLink)
+        if (!resp.ok) {
+            throw new Error(`Failed to load RSS from ${rssLink}, error response from server: ${resp.status} ${resp.statusText}`)
+        }
+        text = await resp.text()
+    }
+    const feed = await parser.parseString(text)
     return feed.items.map(e => {
         let imageUrl = (e.enclosure || {}).url
         if (!imageUrl && e['media:content']) { 
