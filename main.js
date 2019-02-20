@@ -31,6 +31,7 @@ const SUPPORTED_LOCALES = ['en', 'ru']
 const MAX_NAME_LEN = 10
 const CONFIG_STORAGE_KEY = 'config'
 const SOURCES_STORAGE_KEY = 'sources'
+const SYNC_PERIOD = 1000 * 60 * 5 // 5 min
 
 let entries = []
 let previousEntry
@@ -39,6 +40,7 @@ let sources = DEFAULT_SOURCES.map(s => ({...s}))
 let delMode = false
 let loadingSources = []
 let config = {...DEFAULT_CONFIG}
+let sourcesSyncTimeoutId
 
 function defaultSources() {
     return ($.i18n().locale.startsWith('ru') ? DEFAULT_SOURCES : DEFAULT_SOURCES_EN).map(s => ({...s}))
@@ -76,7 +78,7 @@ function shownHash(entry) {
 async function prom(gapiCall, argObj) {
     return new Promise((resolve, reject) => {
         gapiCall(argObj).then(resp => {
-            if (resp && resp.status != 200) {
+            if (resp && (resp.status < 200 || resp.status > 299)) {
                 console.log('GAPI call returned bad status (call, args, response):', gapiCall, argObj, resp)
                 reject(resp)
             } else {
@@ -97,16 +99,16 @@ async function createEmptyFile(name, mimeType) {
     return resp.result.id
 }
 
-async function uploadObj(fileId, contentObject) {
+async function upload(fileId, content) {
     return prom(gapi.client.request, {
         path: `/upload/drive/v3/files/${fileId}`,
         method: 'PATCH',
         params: {uploadType: 'media'},
-        body: JSON.stringify(contentObject)
+        body: typeof content === 'string' ? content : JSON.stringify(content)
     })
 }
 
-async function downloadObj(fileId) {
+async function download(fileId) {
     const resp = await prom(gapi.client.drive.files.get, {fileId: fileId, alt: 'media'})
     return resp.result
 }
@@ -256,6 +258,7 @@ async function syncShown(newEntries) {
 }
 
 async function addEntries(sourceName, newEntries) {
+    removeSourceEntries(sourceName)
     if (!isSourceOn(sourceName)) {
         return
     }
@@ -301,6 +304,7 @@ function loadSource(source) {
 }
 
 function loadEntries() {
+    removeStaleEntries()
     if (sources.find(s => s.on)) {
         sources.forEach(s => loadSource(s))
     } else {
@@ -408,6 +412,17 @@ function syncSourcesUI() {
     })
 }
 
+function removeSourceEntries(sourceName) {
+    entries = entries.filter(e => e.sourceName !== sourceName)
+}
+
+function removeStaleEntries() {
+    entries = entries.filter(e => {
+        const s = findSource(e.sourceName)
+        return s && s.on
+    })
+}
+
 function onToggleButClick() {
     const name = $(this).data('name')
     const source = findSource(name)
@@ -431,7 +446,7 @@ function onToggleButClick() {
             }
             loadSource(source)
         } else {
-            entries = entries.filter(e => e.sourceName != name)
+            removeSourceEntries(name)
         }
         saveSources()
         $(this).find('img').attr('src', getImgSrc(source))
@@ -460,7 +475,7 @@ function load(key) {
 async function saveSources() {
     save(SOURCES_STORAGE_KEY, sources)
     if (isLoggedIn() && config.sourcesId) {
-        return uploadObj(config.sourcesId, sources)
+        return upload(config.sourcesId, sources)
     }    
 }
 
@@ -484,7 +499,7 @@ function ensureStorageLength() {
 }
 
 async function syncSourcesId() {
-    if (!isLoggedIn || config.sourcesId) {
+    if (!isLoggedIn() || config.sourcesId) {
         return
     }
     const sourcesName = SOURCES_STORAGE_KEY + '.json'
@@ -523,16 +538,53 @@ async function loadConfig() {
     }
 }
 
-async function loadSources() {
-    sources = load(SOURCES_STORAGE_KEY) || defaultSources()
+function isSourcesEqual(s1, s2) {
+    return s1 && s2 && s1.name === s2.name && s1.on === s2.on && s1.url === s2.url
+}
+
+async function downloadRemoteSources(doNotRestore) {
     if (isLoggedIn() && config.sourcesId) {
         try {
-            sources = (await downloadObj(config.sourcesId)) || sources
+            sources = (await download(config.sourcesId)) || sources
             save(SOURCES_STORAGE_KEY, sources)
         } catch(e) {
             console.log('Failed to download sources', e)
+            if (e.status === 404 && !doNotRestore) {
+                console.log('Source file is lost, trying to restore')
+                delete config.sourcesId
+                saveConfig()
+                await syncSourcesId()
+                await downloadRemoteSources(true)
+                saveSources()
+            }
         }
     }
+}
+
+async function loadSources() {
+    sources = load(SOURCES_STORAGE_KEY) || defaultSources()
+    downloadRemoteSources()
+}
+
+async function syncSources() {
+    if (isLoggedIn()) {
+        await syncSourcesId()
+        await downloadRemoteSources()
+        syncSourcesUI()
+        loadEntries()
+    }
+}
+
+function scheduleSourcesSync(delay) {
+    if (sourcesSyncTimeoutId) {
+        clearTimeout(sourcesSyncTimeoutId)
+    }
+    sourcesSyncTimeoutId = setTimeout(() => {
+        console.log('Starting periodic sources sync')
+        syncSources()
+            .catch(e => console.log('Periodic sources sync failed', e))
+            .finally(() => scheduleSourcesSync())
+    }, typeof delay === 'undefined' ? SYNC_PERIOD : delay)
 }
 
 function addSource() {
@@ -680,6 +732,17 @@ async function initApp(args) {
     syncSourcesUI()
     loadEntries()
     hideSplash()
+    scheduleSourcesSync()
+}
+
+function onLogIn() {
+    syncLogInBut()
+    if (isLoggedIn()) {
+        scheduleSourcesSync(0)
+    } else {
+        delete config.sourcesId
+        saveConfig()
+    }
 }
 
 function initClient() {
@@ -690,7 +753,7 @@ function initClient() {
         scope: GOOGLE_SCOPES
     }).then(function () {
         // Listen for sign-in state changes.
-        gapi.auth2.getAuthInstance().isSignedIn.listen(syncLogInBut)
+        gapi.auth2.getAuthInstance().isSignedIn.listen(onLogIn)
         // Handle the initial sign-in state.
         googleBut.onclick = onGoogleButClick
         initApp().catch(e => console.log('Error initializing the app', e))
