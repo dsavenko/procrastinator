@@ -32,6 +32,7 @@ const MAX_NAME_LEN = 10
 const CONFIG_STORAGE_KEY = 'config'
 const SOURCES_STORAGE_KEY = 'sources'
 const SYNC_PERIOD = 1000 * 60 * 5 // 5 min
+const MIN_ALERT_INTERVAL = 1000 * 60 * 60 * 2 // 2 hours
 
 let entries = []
 let previousEntry
@@ -41,6 +42,7 @@ let delMode = false
 let loadingSources = []
 let config = {...DEFAULT_CONFIG}
 let sourcesSyncTimeoutId
+let sourceAlertDate = {}
 
 function defaultSources() {
     return ($.i18n().locale.startsWith('ru') ? DEFAULT_SOURCES : DEFAULT_SOURCES_EN).map(s => ({...s}))
@@ -292,7 +294,12 @@ function loadSource(source) {
             .then(newEntries => addEntries(source.name, newEntries))
             .catch(e => {
                 console.log(`Failed to load ${source.name}`, e)
-                alert($.i18n('loading-failed-alert', source.name))
+                const prevAlertDate = sourceAlertDate[source.name]
+                const now = new Date()
+                if (!prevAlertDate || now - prevAlertDate > MIN_ALERT_INTERVAL) {
+                    sourceAlertDate[source.name] = now
+                    alert($.i18n('loading-failed-alert', source.name))
+                }
             })
             .finally(() => {
                 removeA(loadingSources, source.name)
