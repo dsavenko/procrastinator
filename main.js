@@ -771,6 +771,7 @@ async function addToPocket() {
         window.open(loginUrl, 'procrastinatorPocketLogin')
         config.pocketAccessRequested = true
         saveConfig()
+        alert($.i18n('pocket-access-requested-alert'))
     }
     if (!config.pocketAccessToken) {
         const ret = await pocketRequest('oauth/authorize', {
@@ -788,13 +789,24 @@ async function addToPocket() {
     })
 }
 
+function clearPocketData() {
+    delete config.pocketCode
+    delete config.pocketAccessRequested
+    delete config.pocketAccessToken
+    delete config.pocketUsername
+    saveConfig()
+}
+
 function onPocketButClick() {
     hidePocketBut()
     addToPocket()
         .then(() => alert($.i18n('added-to-pocket-alert')))
         .catch(e => {
             console.log('Failed to log into Pocket', e)
-            alert($.i18n('failed-to-add-to-pocket-alert'))
+            clearPocketData()
+            if (confirm($.i18n('failed-to-add-to-pocket-confirm'))) {
+                setTimeout(() => onPocketButClick())
+            }
         })
 }
 

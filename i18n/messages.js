@@ -49,8 +49,9 @@ const PROC_MESSAGES = {
         'reset-confirm': 'Get back to the standard sites? All your changes will be lost.',
         'delete-confirm': 'Delete $1?',
 
-        'added-to-pocket-alert': 'Added to Pocket',
-        'failed-to-add-to-pocket-alert': 'Failed to add to Pocket :(',
+        'pocket-access-requested-alert': 'Please give me access to Pocket (in the new window) and then hit OK',
+        'added-to-pocket-alert': 'Saved to Pocket',
+        'failed-to-add-to-pocket-confirm': 'Failed to save to Pocket :( Try again?',
     },
     
     ru: {
@@ -102,7 +103,8 @@ const PROC_MESSAGES = {
         'reset-confirm': 'Вернуться к стандартному набору сайтов? Все ваши изменения буду утеряны.',
         'delete-confirm': 'Удалить $1?',
 
-        'added-to-pocket-alert': 'Добавил в Pocket',
-        'failed-to-add-to-pocket-alert': 'Не смог добавить в Pocket :(',
+        'pocket-access-requested-alert': 'Пожалуйста, дайте мне доступ в Pocket (в новом окне) и нажмите ОК',
+        'added-to-pocket-alert': 'Сохранил в Pocket',
+        'failed-to-add-to-pocket-confirm': 'Не смог сохранить в Pocket :( Попробовать снова?',
     }
 }
