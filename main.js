@@ -9,6 +9,9 @@ const GOOGLE_CLIENT_ID = '1078139606-9nh42gv73t49sm2qj3c2dutritjho4oo.apps.googl
 const GOOGLE_DISCOVERY_DOCS = ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
 const GOOGLE_SCOPES = 'https://www.googleapis.com/auth/drive.appfolder'
 
+const POCKET_KEY = '84212-47555ab748057882b1c8516f'
+const POCKET_REDIRECT_HASH = '#pocket-redirect'
+
 const CORS_PROXY = 'https://proc-cors-eu.herokuapp.com/'
 const DEFAULT_SOURCES = [
     {name: 'Lenta', on: true, url: 'https://lenta.ru/rss'},
@@ -323,6 +326,10 @@ function isRealUrl(url) {
     return url && url !== DUMMY_URL
 }
 
+function hidePocketBut() {
+    $(pocketBut).addClass('invisible')
+}
+
 function setEntry(e, noPrevious) {
     e = e || {}
     titleCont.innerText = e.title || ''
@@ -351,6 +358,11 @@ function setEntry(e, noPrevious) {
     }
     $(moreBut).text($.i18n(e.checkAgain ? 'check-again-btn' : 'more-btn'))
     currentEntry = e
+    if (isRealUrl(currentEntry.url)) {
+        $(pocketBut).removeClass('invisible')
+    } else {
+        hidePocketBut()
+    }
 }
 
 function pickEntry() {
@@ -708,10 +720,89 @@ function onGoogleButClick() {
     }
 }
 
+function getPocketRedirectUri() {
+    return location.href + POCKET_REDIRECT_HASH
+}
+
+async function pocketRequest(endpoint, params, expectedReturn) {
+    if (!endpoint.startsWith('/')) {
+        endpoint = '/' + endpoint
+    }
+    const pocketUrl = 'https://getpocket.com/v3' + endpoint
+    const resp = await fetch(CORS_PROXY + pocketUrl, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'},
+        body: new URLSearchParams(params)
+    })
+    if (!resp.ok) {
+        throw new Error(`Error response from ${pocketUrl}: ${resp.statusText}`)
+    }
+    if (expectedReturn && 0 < expectedReturn.length) {
+        const respText = await resp.text()
+        const returnParams = new URLSearchParams(respText)
+        let ret = {}
+        expectedReturn.forEach(k => {
+            const v = returnParams.get(k)
+            if (!v) {
+                throw new Error(`Pocket call ${endpoint} didn't return ${k}. It returned: ${respText}`)
+            }
+            ret[k] = v
+        })
+        return ret
+    }
+}
+
+async function addToPocket() {
+    if (!currentEntry || !isRealUrl(currentEntry.url)) {
+        return
+    }
+    if (!config.pocketCode) {
+        const ret = await pocketRequest('oauth/request', {
+            consumer_key: POCKET_KEY,
+            redirect_uri: getPocketRedirectUri()
+        }, ['code'])
+        config.pocketCode = ret.code
+        saveConfig()
+    }
+    if (!config.pocketAccessRequested) {
+        const loginUrl = 'https://getpocket.com/auth/authorize?request_token=' +
+            encodeURIComponent(config.pocketCode) +
+            '&redirect_uri=' + encodeURIComponent(getPocketRedirectUri())
+        window.open(loginUrl, 'procrastinatorPocketLogin')
+        config.pocketAccessRequested = true
+        saveConfig()
+    }
+    if (!config.pocketAccessToken) {
+        const ret = await pocketRequest('oauth/authorize', {
+            consumer_key: POCKET_KEY,
+            code: config.pocketCode
+        }, ['access_token', 'username'])
+        config.pocketAccessToken = ret.access_token
+        config.pocketUsername = ret.username
+        saveConfig()
+    }
+    await pocketRequest('add', {
+        consumer_key: POCKET_KEY,
+        access_token: config.pocketAccessToken,
+        url: currentEntry.url
+    })
+}
+
+function onPocketButClick() {
+    hidePocketBut()
+    addToPocket()
+        .then(() => alert($.i18n('added-to-pocket-alert')))
+        .catch(e => {
+            console.log('Failed to log into Pocket', e)
+            alert($.i18n('failed-to-add-to-pocket-alert'))
+        })
+}
+
 async function initApp(args) {
     logoBut.onclick = onLogoButClick
     moreBut.onclick = onMoreButClick
     previousBut.onclick = onPreviousButClick
+    pocketBut.onclick = onPocketButClick
     entryBut.onclick = onEntryButClick
     settingsBut.onclick = onSettingsButClick
     langBut.onclick = onLangButClick
@@ -768,4 +859,8 @@ function initClient() {
         console.log('Failed to init GAPI client', error)
         initApp({showAlert: 'google-init-failed-alert'}).catch(e => console.log('Error initializing the app', e))
     })
+}
+
+if (location.hash === POCKET_REDIRECT_HASH) {
+    window.close()
 }
