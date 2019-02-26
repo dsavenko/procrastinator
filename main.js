@@ -851,12 +851,12 @@ function removeHash () {
 function gaw(action, label) {
     if (ga) {
         try {
-            ga('send', {
-                hitType: 'event',
-                eventCategory: 'Actions',
-                eventAction: action || 'generalAction',
-                eventLabel: label || 'generalLabel'
-            })
+            const tracker = ga.getAll()[0]
+            if (tracker) {
+                tracker.send('event', action, label)
+            } else {
+                console.log('No GA tracker found')
+            }
         } catch(e) {
             console.log('GA call failed', e)
         }
