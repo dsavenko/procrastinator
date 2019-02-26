@@ -34,6 +34,7 @@ const SUPPORTED_LOCALES = ['en', 'ru']
 const MAX_NAME_LEN = 10
 const CONFIG_STORAGE_KEY = 'config'
 const SOURCES_STORAGE_KEY = 'sources'
+const CACHE_STORAGE_KEY = 'cache'
 const SYNC_PERIOD = 1000 * 60 * 5 // 5 min
 const MIN_ALERT_INTERVAL = 1000 * 60 * 60 * 2 // 2 hours
 
@@ -330,7 +331,7 @@ function hidePocketBut() {
     $(pocketBut).addClass('invisible')
 }
 
-function setEntry(e, noPrevious) {
+function setEntry(e, noPrevious, noCache) {
     e = e || {}
     titleCont.innerText = e.title || ''
     if (isRealUrl(e.imageUrl)) {
@@ -362,6 +363,9 @@ function setEntry(e, noPrevious) {
         $(pocketBut).removeClass('invisible')
     } else {
         hidePocketBut()
+    }
+    if (!noCache && isRealUrl(currentEntry.url)) {
+        setTimeout(() => saveCache())
     }
 }
 
@@ -474,12 +478,14 @@ function onToggleButClick() {
     }
 }
 
-function save(key, value) {
+function save(key, value, noOkLog) {
     try {
         ensureStorageLength()
         const path = `${key}.json`
         localStorage.setItem(path, JSON.stringify(value))
-        console.log(`Saved ${key}`)
+        if (!noOkLog) {
+            console.log(`Saved ${key}`)
+        }
     } catch(e) {
         console.log(`Failed to save ${key}`, e)
     }
@@ -500,6 +506,26 @@ async function saveSources() {
 
 function saveConfig() {
     save(CONFIG_STORAGE_KEY, config)
+}
+
+function saveCache() {
+    const cache = {entries: entries}
+    if (currentEntry && isRealUrl(currentEntry.url)) {
+        cache.currentEntry = currentEntry
+    }
+    save(CACHE_STORAGE_KEY, cache, true)
+}
+
+function loadCache() {
+    const cache = load(CACHE_STORAGE_KEY)
+    if (cache) {
+        if (cache.entries) {
+            entries = cache.entries
+        }
+        if (cache.currentEntry) {
+            setEntry(cache.currentEntry, true, true)
+        }
+    }
 }
 
 function ensureStorageLength() {
@@ -542,9 +568,8 @@ async function syncSourcesId() {
     }
 }
 
-async function loadConfig() {
+function loadConfig() {
     config = load(CONFIG_STORAGE_KEY) || {...DEFAULT_CONFIG}
-    await syncSourcesId()
     if (config.locale && SUPPORTED_LOCALES.includes(config.locale)) {
         $.i18n().locale = config.locale
         syncLangBut()
@@ -580,9 +605,8 @@ async function downloadRemoteSources(doNotRestore) {
     }
 }
 
-async function loadSources() {
+function loadSources() {
     sources = load(SOURCES_STORAGE_KEY) || defaultSources()
-    downloadRemoteSources()
 }
 
 async function syncSources() {
@@ -665,7 +689,7 @@ function applyLocale() {
     $('html').i18n()
     syncLogInBut()
     if (currentEntry.rebuild) {
-        setEntry(currentEntry.rebuild())
+        setEntry(currentEntry.rebuild(), true, true)
     }
 }
 
@@ -721,7 +745,9 @@ function onGoogleButClick() {
 }
 
 function getPocketRedirectUri() {
-    return location.href + POCKET_REDIRECT_HASH
+    const ret = new URL(location.href)
+    ret.hash = POCKET_REDIRECT_HASH
+    return ret.toString()
 }
 
 async function pocketRequest(endpoint, params, expectedReturn) {
@@ -765,13 +791,13 @@ async function addToPocket() {
         saveConfig()
     }
     if (!config.pocketAccessRequested) {
+        config.pocketAccessRequested = true
+        saveConfig()
         const loginUrl = 'https://getpocket.com/auth/authorize?request_token=' +
             encodeURIComponent(config.pocketCode) +
             '&redirect_uri=' + encodeURIComponent(getPocketRedirectUri())
-        window.open(loginUrl, 'procrastinatorPocketLogin')
-        config.pocketAccessRequested = true
-        saveConfig()
-        alert($.i18n('pocket-access-requested-alert'))
+        location = loginUrl
+        return false
     }
     if (!config.pocketAccessToken) {
         const ret = await pocketRequest('oauth/authorize', {
@@ -785,8 +811,10 @@ async function addToPocket() {
     await pocketRequest('add', {
         consumer_key: POCKET_KEY,
         access_token: config.pocketAccessToken,
-        url: currentEntry.url
+        url: currentEntry.url,
+        title: currentEntry.title || ''
     })
+    return true
 }
 
 function clearPocketData() {
@@ -800,7 +828,11 @@ function clearPocketData() {
 function onPocketButClick() {
     hidePocketBut()
     addToPocket()
-        .then(() => alert($.i18n('added-to-pocket-alert')))
+        .then(isAdded => {
+            if (isAdded) {
+                alert($.i18n('added-to-pocket-alert'))
+            }
+        })
         .catch(e => {
             console.log('Failed to log into Pocket', e)
             clearPocketData()
@@ -808,6 +840,10 @@ function onPocketButClick() {
                 setTimeout(() => onPocketButClick())
             }
         })
+}
+
+function removeHash () { 
+    history.pushState('', document.title, window.location.pathname + window.location.search)
 }
 
 async function initApp(args) {
@@ -832,17 +868,24 @@ async function initApp(args) {
 
     syncLogInBut()
     syncLangBut()
-    await loadConfig()
+    loadConfig()
     $.i18n().load(PROC_MESSAGES)
     if (args && args.showAlert) {
         alert($.i18n(args.showAlert))
     }
-    await loadSources()
+    loadSources()
     applyLocale()
     syncSourcesUI()
+    loadCache()
     loadEntries()
     hideSplash()
+    await syncSourcesId()
+    await downloadRemoteSources()
     scheduleSourcesSync()
+    if (location.hash === POCKET_REDIRECT_HASH) {
+        onPocketButClick()
+    }
+    removeHash()
 }
 
 function onLogIn() {
@@ -871,8 +914,4 @@ function initClient() {
         console.log('Failed to init GAPI client', error)
         initApp({showAlert: 'google-init-failed-alert'}).catch(e => console.log('Error initializing the app', e))
     })
-}
-
-if (location.hash === POCKET_REDIRECT_HASH) {
-    window.close()
 }
