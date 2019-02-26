@@ -38,6 +38,8 @@ const CACHE_STORAGE_KEY = 'cache'
 const SYNC_PERIOD = 1000 * 60 * 5 // 5 min
 const MIN_ALERT_INTERVAL = 1000 * 60 * 60 * 2 // 2 hours
 
+const virtualDocument = document.implementation.createHTMLDocument('virtual')
+
 let entries = []
 let previousEntry
 let currentEntry = {}
@@ -170,7 +172,7 @@ function htmlDecode(value) {
 
 function extractImageFromHtml(content) {
     if (content) {
-        const tmpDom = $('<div>').append($.parseHTML(content))
+        const tmpDom = $('<div>', virtualDocument).append($.parseHTML(content))
         return $('img', tmpDom).attr('src')
     }
 }
