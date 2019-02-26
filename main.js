@@ -848,6 +848,21 @@ function removeHash () {
     history.pushState('', document.title, window.location.pathname + window.location.search)
 }
 
+function gaw(action, label) {
+    if (ga) {
+        try {
+            ga('send', {
+                hitType: 'event',
+                eventCategory: 'Actions',
+                eventAction: action || 'generalAction',
+                eventLabel: label || 'generalLabel'
+            })
+        } catch(e) {
+            console.log('GA call failed', e)
+        }
+    }
+}
+
 async function initApp(args) {
     logoBut.onclick = onLogoButClick
     moreBut.onclick = onMoreButClick
@@ -862,8 +877,21 @@ async function initApp(args) {
     resetBut.onclick = resetSources
     showAddBut.onclick = toggleAddCont
 
+    document.addEventListener('click', e => {
+        let node = e.target
+        while (node) {
+            if (node.id) {
+                gaw('click', node.id)
+                break
+            } else {
+                node = node.parentNode
+            }
+        }
+    })
+
     document.addEventListener('keyup', e => {
         if (32 == e.which) {
+            gaw('keyup', 'space')
             onMoreButClick()
         }
     })
