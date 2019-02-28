@@ -88,12 +88,14 @@ async function prom(gapiCall, argObj) {
         gapiCall(argObj).then(resp => {
             if (resp && (resp.status < 200 || resp.status > 299)) {
                 console.log('GAPI call returned bad status (call, args, response):', gapiCall, argObj, resp)
+                gaw('call_bad_status', 'google')
                 reject(resp)
             } else {
                 resolve(resp)
             }
         }, err => {
             console.log('GAPI call failed (call, args, response):', gapiCall, argObj, err)
+            gaw('call_error', 'google')
             reject(err)
         })
     })
@@ -278,7 +280,7 @@ async function addEntries(sourceName, newEntries) {
     const old = entries.length
     entries = entries.concat(filteredEntries)
     shuffle(entries)
-    console.log(`Added ${entries.length - old} ${sourceName} entries, total number of entries: ${entries.length}`)
+    console.log(`Added ${entries.length - old} new ${sourceName} entries (out of ${newEntries.length}), total number of entries: ${entries.length}`)
 }
 
 function removeA(arr) {
@@ -381,10 +383,12 @@ function pickEntry() {
 
 function onLogoButClick() {
     setEntry(welcomeEntry())
+    gaw('show_welcome')
 }
 
 function onPreviousButClick() {
     if (previousEntry) {
+        gaw('previous')
         if (currentEntry) {
             entries.unshift(currentEntry)
         }
@@ -393,6 +397,7 @@ function onPreviousButClick() {
 }
 
 function onMoreButClick() {
+    gaw('more')
     if (currentEntry.checkAgain) {
         loadEntries()
     } else {
@@ -410,6 +415,7 @@ function onEntryButClick() {
     const url = entryBut.dataset.url
     if (isRealUrl(url)) {
         window.open(url, '_blank')
+        gaw('entry')
     }
 }
 
@@ -419,6 +425,9 @@ function onSettingsButClick() {
     }
     $('.gear-menu').toggleClass('hidden')
     $(settingsBut).toggleClass('enabled')
+    if ($(settingsBut).hasClass('enabled')) {
+        gaw('settings')
+    }
 }
 
 function getImgSrc(source) {
@@ -459,6 +468,7 @@ function onToggleButClick() {
                     sources.splice(index, 1)
                     entries = filterEntries(entries)
                     saveSources()
+                    gaw('delete_source')
                     syncSourcesUI()
                 }
             }
@@ -474,6 +484,7 @@ function onToggleButClick() {
             removeSourceEntries(name)
         }
         saveSources()
+        gaw('toggle_source')
         $(this).find('img').attr('src', getImgSrc(source))
     } else {
         console.log(`${name} source not found`)
@@ -533,6 +544,7 @@ function loadCache() {
 function ensureStorageLength() {
     if (MAX_STORAGE_LEN <= localStorage.length) {
         console.log(`Storage length is too high (${localStorage.length}), clearing storage`)
+        gaw('clean_storage', 'background')
         const storedConfig = load(CONFIG_STORAGE_KEY)
         const storedSources = load(SOURCES_STORAGE_KEY)
         localStorage.clear()
@@ -660,6 +672,7 @@ function addSource() {
     sources.push(newSource)
     loadSource(newSource)
     saveSources()
+    gaw('add_custom_source')
     syncSourcesUI()
     toggleAddCont()
 }
@@ -669,6 +682,7 @@ function resetSources() {
         sources = defaultSources()
         delMode = false
         saveSources()
+        gaw('reset_sources')
         syncSourcesUI()
         entries = []
         setEntry(loadingEntry())
@@ -730,6 +744,7 @@ function onLangButClick() {
     applyLocale()
     config.locale = newLoc
     saveConfig()
+    gaw(newLoc, 'locale')
 }
 
 function hideSplash() {
@@ -740,9 +755,11 @@ function onGoogleButClick() {
     if (gapi.auth2.getAuthInstance().isSignedIn.get()) {
         if (confirm($.i18n('google-logout-confirm'))) {
             gapi.auth2.getAuthInstance().signOut()
+            gaw('sign_out', 'google')
         }
     } else {
         gapi.auth2.getAuthInstance().signIn()
+        gaw('sign_in', 'google')
     }
 }
 
@@ -809,6 +826,7 @@ async function addToPocket() {
         config.pocketAccessToken = ret.access_token
         config.pocketUsername = ret.username
         saveConfig()
+        gaw('sign_in', 'pocket')
     }
     await pocketRequest('add', {
         consumer_key: POCKET_KEY,
@@ -816,6 +834,7 @@ async function addToPocket() {
         url: currentEntry.url,
         title: currentEntry.title || ''
     })
+    gaw('add', 'pocket')
     return true
 }
 
@@ -848,12 +867,12 @@ function removeHash () {
     history.pushState('', document.title, window.location.pathname + window.location.search)
 }
 
-function gaw(action, label) {
+function gaw(action, category) {
     if (ga) {
         try {
             const tracker = ga.getAll()[0]
             if (tracker) {
-                tracker.send('event', action, label)
+                tracker.send('event', category || 'general', action)
             } else {
                 console.log('No GA tracker found')
             }
@@ -877,21 +896,8 @@ async function initApp(args) {
     resetBut.onclick = resetSources
     showAddBut.onclick = toggleAddCont
 
-    document.addEventListener('click', e => {
-        let node = e.target
-        while (node) {
-            if (node.id) {
-                gaw('click', node.id)
-                break
-            } else {
-                node = node.parentNode
-            }
-        }
-    })
-
     document.addEventListener('keyup', e => {
         if (32 == e.which) {
-            gaw('keyup', 'space')
             onMoreButClick()
         }
     })
@@ -942,6 +948,7 @@ function initClient() {
         initApp().catch(e => console.log('Error initializing the app', e))
     }, function(error) {
         console.log('Failed to init GAPI client', error)
+        gaw('init_error', 'google')
         initApp({showAlert: 'google-init-failed-alert'}).catch(e => console.log('Error initializing the app', e))
     })
 }
