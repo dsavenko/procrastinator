@@ -339,11 +339,9 @@ function setEntry(e, noPrevious, noCache) {
     clearAllAlerts()
     e = e || {}
     titleCont.innerText = e.title || ''
+    $(imageCont).empty()
     if (isRealUrl(e.imageUrl)) {
-        imgTag.src = e.imageUrl
-        $(imgTag).removeClass('hidden')
-    } else {
-        $(imgTag).addClass('hidden')
+        $(imageCont).append($('<img/>').attr('src', e.imageUrl))
     }
     if (e.html) {
         textCont.innerHTML = e.html
