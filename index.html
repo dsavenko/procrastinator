@@ -68,6 +68,14 @@
             overflow: hidden;
             white-space: nowrap;
         }
+        .alert {
+            flex-grow: 1;
+            text-align: center;
+            overflow: hidden;
+        }
+        .alert-cont {
+            opacity: 0.8;
+        }
         .ribbon img {
             height: 1em;
         }
@@ -240,6 +248,15 @@
                 </div>
                 <div id="textCont" class="text">
                 </div>
+            </div>
+        </div>
+        <div class="alert-cont-prototype ribbon flex hidden">
+            <div class="invisible">
+                <img src="previous.svg">
+            </div>
+            <div class="alert"></div>
+            <div class="alert-close">
+                <img src="trash.svg">
             </div>
         </div>
         <div class="ribbon flex">

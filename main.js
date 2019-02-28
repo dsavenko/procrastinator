@@ -306,7 +306,7 @@ function loadSource(source) {
                 const now = new Date()
                 if (!prevAlertDate || now - prevAlertDate > MIN_ALERT_INTERVAL) {
                     sourceAlertDate[source.name] = now
-                    alert($.i18n('loading-failed-alert', source.name))
+                    procAlert('loading-failed-alert', source.name)
                 }
             })
             .finally(() => {
@@ -336,6 +336,7 @@ function hidePocketBut() {
 }
 
 function setEntry(e, noPrevious, noCache) {
+    clearAllAlerts()
     e = e || {}
     titleCont.innerText = e.title || ''
     if (isRealUrl(e.imageUrl)) {
@@ -647,25 +648,25 @@ function scheduleSourcesSync(delay) {
 function addSource() {
     const newName = nameInput.value
     if (0 >= newName.length) {
-        alert($.i18n('no-name-alert'))
+        procAlert('no-name-alert')
         return
     }
     if (MAX_NAME_LEN < newName.length) {
-        alert($.i18n('name-too-long-alert'))
+        procAlert('name-too-long-alert')
         return
     }
     if (findSource(newName)) {
-        alert($.i18n('name-exists-alert'))
+        procAlert('name-exists-alert')
         return
     }
     const newUrl = urlInput.value
     if (0 >= newUrl.length) {
-        alert($.i18n('no-rss-addr-alert'))
+        procAlert('no-rss-addr-alert')
         return
     }
     const existingSource = sources.find(s => s.url === newUrl)
     if (existingSource) {
-        alert($.i18n('rss-addr-exists-alert', existingSource.name))
+        procAlert('rss-addr-exists-alert', existingSource.name)
         return
     }
     const newSource = {name: newName, on: true, url: newUrl}
@@ -851,7 +852,7 @@ function onPocketButClick() {
     addToPocket()
         .then(isAdded => {
             if (isAdded) {
-                alert($.i18n('added-to-pocket-alert'))
+                procAlert('added-to-pocket-alert')
             }
         })
         .catch(e => {
@@ -882,6 +883,22 @@ function gaw(action, category) {
     }
 }
 
+function clearAllAlerts() {
+    $('.alert-cont').remove()
+}
+
+function removeNodeParent() {
+    $(this).parent().remove()
+}
+
+function procAlert(msgKey, param) {
+    const alertCont = $('.alert-cont-prototype').clone().addClass('alert-cont')
+    alertCont.find('.alert').text($.i18n(msgKey, param))
+    alertCont.find('.alert-close').click(removeNodeParent)
+    alertCont.insertAfter('#entryCont')
+    alertCont.removeClass('alert-cont-prototype hidden')
+}
+
 async function initApp(args) {
     logoBut.onclick = onLogoButClick
     moreBut.onclick = onMoreButClick
@@ -907,7 +924,7 @@ async function initApp(args) {
     loadConfig()
     $.i18n().load(PROC_MESSAGES)
     if (args && args.showAlert) {
-        alert($.i18n(args.showAlert))
+        procAlert(args.showAlert)
     }
     loadSources()
     applyLocale()
