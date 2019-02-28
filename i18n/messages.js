@@ -76,7 +76,7 @@ const PROC_MESSAGES = {
 
         'loading-entry-title': 'Загружаю...',
 
-        'loading-failed-alert': 'Не удалось загрузить источник "$1". Может быть, получиться позднее?',
+        'loading-failed-alert': 'Не удалось загрузить источник "$1". Может быть, получится позднее?',
         'google-init-failed-alert': 'Google нас отверг :( Вход через Google не будет работать.',
 
         'welcome-entry-title': 'Привет, это Прокрастинатор!',
