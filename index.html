@@ -212,6 +212,16 @@
         .input-field > input {
             width: 100%;
         }
+        .unsupported {
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            z-index: 3000;
+            height: 100%;
+            width: 100%;
+            background-color: #fff;
+            text-align: center;
+        }
     </style>
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-131902348-1"></script>
@@ -224,7 +234,7 @@
 </head>
 <body>
     <noscript>
-        <div style="position: fixed; top: 0px; left: 0px; z-index: 3000; height: 100%; width: 100%; background-color: #fff; text-align: center;">
+        <div class="unsupported">
             <h3>Для работы нужен JavaScript :(</h3>
             <p>Включите его, пожалуйста. Это зло, но это неизбежное зло.</p>
             <hr>
@@ -232,6 +242,13 @@
             <p>Please, turn it on. It's an evil, but a necessary evil.</p>
         </div>
     </noscript>
+    <div id="unsupportedBrowser" class="unsupported hidden">
+        <h3>Слишком старый браузер :(</h3>
+        <p>Ваш браузер не поддерживает кое-каких нужных вещей. Пожалуйста, обновите его.</p>
+        <hr>
+        <h3>Browser is too old :(</h3>
+        <p>Your browser doesn't support some features I need. Please, update it.</p>
+    </div>
     <div id="splash">
         <div class="pulsate">П</div>
     </div>
@@ -303,9 +320,11 @@
             </div>
         </div>
     </div>
+    <script src="jquery.min.js"></script>
+    <script src="compat.js"></script>
+    
     <script src="md5.js"></script>
     <script src="rss-parser.min.js"></script>
-    <script src="jquery.min.js"></script>
     <script src="https://apis.google.com/js/api.js"></script>
 
     <!-- jquery.i18n v1.0.5 -->
