@@ -23,7 +23,7 @@ const PROC_MESSAGES = {
 
         'loading-entry-title': 'Loading...',
 
-        'loading-failed-alert': 'Failed to load the "$1" source. Maybe later?',
+        'loading-failed-alert': 'Failed to load $1. Maybe later?',
         'google-init-failed-alert': 'Rejected by Google :( Logging in via Google won\'t work.',
 
         'welcome-entry-title': 'Hi, this is Procrastinator!',
@@ -34,12 +34,14 @@ const PROC_MESSAGES = {
             
             '<p>Procrastinator remembers articles you\'ve seen and doesn\'t show them again.</p>' +
             
-            '<p>You can change information sources by hitting the top right gear icon.</p>' +
+            '<p>You can change the sources of news and articles by hitting the top right gear icon.</p>' +
             
-            '<p>There, you can also enable synchronization. With it, it\'s much more comfortable to use Procrastinator from different devices.</p>' +
+            '<p>There, you can also log in via Google. It\'ll help if you want to use Procrastinator from different devices.</p>' +
 
             '<p>Please, leave feedback and suggestions <a href="$2" target="_blank">on GitHub</a>, ' +
-            'or <a href="mailto:$3">mail me</a> directly.</p>',
+            'or <a href="mailto:$3">mail me</a> directly.</p>' + 
+            
+            '<p><center><b>Hit $1!</b></center></p>',
 
         'no-name-alert': 'Please, enter a name',
         'name-too-long-alert': 'Please, make the name shorter',
@@ -76,7 +78,7 @@ const PROC_MESSAGES = {
 
         'loading-entry-title': 'Загружаю...',
 
-        'loading-failed-alert': 'Не удалось загрузить источник "$1". Может быть, получится позднее?',
+        'loading-failed-alert': 'Не удалось загрузить $1. Может быть, получится позднее?',
         'google-init-failed-alert': 'Google нас отверг :( Вход через Google не будет работать.',
 
         'welcome-entry-title': 'Привет, это Прокрастинатор!',
@@ -87,12 +89,14 @@ const PROC_MESSAGES = {
             
             '<p>Прокрастинатор запоминает прочитанные статьи и не показывает их повторно.</p>' +
             
-            '<p>Нажав на шестерёнку справа вверху, можно настроить, из каких источников брать информацию.</p>' +
+            '<p>Нажав на шестерёнку справа вверху, можно настроить, откуда брать новости и статьи.</p>' +
             
-            '<p>Там же можно подключить синхронизацию. С ней гораздо комфортнее использовать Прокрастинатор с разных устройств.</p>' +
+            '<p>Там же можно войти через Google. Это полезно, если вы хотите использовать Прокрастинатор с разных устройств.</p>' +
 
             '<p>Пожелания и предложения можно оставлять <a href="$2" target="_blank">на GitHub</a>, ' +
-            'либо писать мне на <a href="mailto:$3">почту</a>.</p>',
+            'либо писать мне на <a href="mailto:$3">почту</a>.</p>' + 
+            
+            '<p><center><b>Нажмите $1!</b></center></p>',
 
         'no-name-alert': 'Пожалуйста, введите имя',
         'name-too-long-alert': 'Пожалуйста, укоротите имя',
