@@ -105,7 +105,7 @@
             visibility: hidden;
         }
         .hidden {
-            display: none;
+            display: none !important;
         }
         img.checkbox {
             margin-right: 0.3em;
@@ -127,7 +127,7 @@
         .enabled {
             background-color: rgba(255, 255, 255, 0.3);
         }
-        #splash {
+        .dialog {
             background-color: #FF4136;
             position: fixed;
             top: 0;
@@ -135,6 +135,36 @@
             right: 0;
             bottom: 0;
             z-index: 1000;
+            color: #fff;
+            display: flex;
+            justify-content: space-around;
+            align-items: stretch;
+            font-size: 2em;
+            -webkit-touch-callout: none; /* iOS Safari */
+            -webkit-user-select: none; /* Safari */
+            -khtml-user-select: none; /* Konqueror HTML */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; 
+        }
+        .dialog > div {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 0.2em;
+            overflow: hidden;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        #splash {
+            background-color: #FF4136;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 900;
             color: #fff;
             display: flex;
             justify-content: center;
@@ -204,6 +234,10 @@
     </noscript>
     <div id="splash">
         <div class="pulsate">П</div>
+    </div>
+    <div id="chooseLang" class="dialog flex column hidden">
+        <div id="chooseEnglishBut">In English</div>
+        <div id="chooseRussianBut">По-русски</div>
     </div>
     <div class="flex column full-space">
         <div class="ribbon flex">

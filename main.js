@@ -581,13 +581,27 @@ async function syncSourcesId() {
     }
 }
 
-function loadConfig() {
+function showLangDialog() {
+    return new Promise((resolve, reject) => {
+        function chooseLoc(loc) {
+            setLocale(loc)
+            $(chooseLang).remove()
+            resolve()
+        } 
+        chooseEnglishBut.onclick = () => chooseLoc('en')
+        chooseRussianBut.onclick = () => chooseLoc('ru')
+        $(chooseLang).removeClass('hidden')
+    })
+}
+
+async function loadConfig() {
     config = load(CONFIG_STORAGE_KEY) || {...DEFAULT_CONFIG}
-    if (config.locale && SUPPORTED_LOCALES.includes(config.locale)) {
-        $.i18n().locale = config.locale
-        syncLangBut()
-        console.log('Set locale from config', $.i18n().locale)
+    if (!config.locale || !SUPPORTED_LOCALES.includes(config.locale)) {
+        await showLangDialog()
     }
+    $.i18n().locale = config.locale
+    syncLangBut()
+    console.log('Set locale', $.i18n().locale)
     if (!config.welcomeShown) {
         setEntry(welcomeEntry())
         config.welcomeShown = true
@@ -736,18 +750,22 @@ function syncLogInBut() {
     }
 }
 
-function onLangButClick() {
-    const newLoc = $.i18n().locale.startsWith('ru') ? 'en' : 'ru'
+function setLocale(newLoc) {
     $.i18n().locale = newLoc
     syncLangBut()
-    applyLocale()
     config.locale = newLoc
     saveConfig()
     gaw(newLoc, 'locale')
 }
 
+function onLangButClick() {
+    const newLoc = $.i18n().locale.startsWith('ru') ? 'en' : 'ru'
+    setLocale(newLoc)
+    applyLocale()
+}
+
 function hideSplash() {
-    $(splash).hide()
+    $(splash).addClass('hidden')
 }
 
 function onGoogleButClick() {
@@ -919,7 +937,7 @@ async function initApp(args) {
 
     syncLogInBut()
     syncLangBut()
-    loadConfig()
+    await loadConfig()
     $.i18n().load(PROC_MESSAGES)
     if (args && args.showAlert) {
         procAlert(args.showAlert)
