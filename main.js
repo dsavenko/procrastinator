@@ -43,15 +43,16 @@ const virtualDocument = document.implementation.createHTMLDocument('virtual')
 let entries = []
 let previousEntry
 let currentEntry = {}
-let sources = DEFAULT_SOURCES.map(s => ({...s}))
+let sources = DEFAULT_SOURCES.map(s => Object.assign({}, s))
 let delMode = false
 let loadingSources = []
-let config = {...DEFAULT_CONFIG}
+let config = Object.assign({}, DEFAULT_CONFIG)
 let sourcesSyncTimeoutId
 let sourceAlertDate = {}
 
 function defaultSources() {
-    return ($.i18n().locale.startsWith('ru') ? DEFAULT_SOURCES : DEFAULT_SOURCES_EN).map(s => ({...s}))
+    return ($.i18n().locale.startsWith('ru') ? 
+        DEFAULT_SOURCES : DEFAULT_SOURCES_EN).map(s => Object.assign({}, s))
 }
 
 function nothingEntry() {
@@ -309,7 +310,7 @@ function loadSource(source) {
                     procAlert('loading-failed-alert', source.name)
                 }
             })
-            .finally(() => {
+            .then(() => {
                 removeA(loadingSources, source.name)
                 loadFirstEntry()
             })
@@ -595,7 +596,7 @@ function showLangDialog() {
 }
 
 async function loadConfig() {
-    config = load(CONFIG_STORAGE_KEY) || {...DEFAULT_CONFIG}
+    config = load(CONFIG_STORAGE_KEY) || Object.assign({}, DEFAULT_CONFIG)
     if (!config.locale || !SUPPORTED_LOCALES.includes(config.locale)) {
         await showLangDialog()
     }
@@ -653,7 +654,7 @@ function scheduleSourcesSync(delay) {
         console.log('Starting periodic sources sync')
         syncSources()
             .catch(e => console.log('Periodic sources sync failed', e))
-            .finally(() => scheduleSourcesSync())
+            .then(() => scheduleSourcesSync())
     }, typeof delay === 'undefined' ? SYNC_PERIOD : delay)
 }
 
@@ -885,7 +886,7 @@ function removeHash () {
 }
 
 function gaw(action, category) {
-    if (ga) {
+    if (typeof ga !== 'undefined') {
         try {
             const tracker = ga.getAll()[0]
             if (tracker) {
@@ -968,6 +969,11 @@ function onLogIn() {
 }
 
 function initClient() {
+    if (typeof window.noTimeToProcrastinate !== 'undefined' && window.noTimeToProcrastinate) {
+        // just stop
+        console.log('Procrastinator terminated')
+        return
+    }
     gapi.client.init({
         apiKey: GOOGLE_API_KEY,
         clientId: GOOGLE_CLIENT_ID,
