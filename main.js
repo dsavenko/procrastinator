@@ -349,6 +349,12 @@ function setEntry(e, noPrevious, noCache) {
     } else {
         textCont.innerText = e.text || ''
     }
+    if (textCont.offsetHeight <= textContSizeChecker.offsetHeight) {
+        // single-line text -> make it centered
+        $(textCont).addClass('center')
+    } else {
+        $(textCont).removeClass('center')
+    }
     entryBut.dataset.url = e.url || ''
     entryCont.scrollTop = 0
     if (isRealUrl(e.url)) {
