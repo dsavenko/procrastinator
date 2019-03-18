@@ -360,12 +360,12 @@ function setEntry(e, noPrevious, noCache) {
     if (isRealUrl(e.url)) {
         rememberShown(e)
     }
-    if (!noPrevious && isRealUrl(currentEntry.url)) {
-        previousEntry = currentEntry
-        $(previousBut).removeClass('invisible')
-    } else {
+    if (noPrevious) {
         previousEntry = null
         $(previousBut).addClass('invisible')
+    } else if (isRealUrl(currentEntry.url)) {
+        previousEntry = currentEntry
+        $(previousBut).removeClass('invisible')
     }
     $(moreBut).text($.i18n(e.checkAgain ? 'check-again-btn' : 'more-btn'))
     currentEntry = e
