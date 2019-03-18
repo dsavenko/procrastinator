@@ -349,11 +349,12 @@ function setEntry(e, noPrevious, noCache) {
     } else {
         textCont.innerText = e.text || ''
     }
+    sourceCont.innerText = e.sourceName || ''
     if (textCont.offsetHeight <= textContSizeChecker.offsetHeight) {
         // single-line text -> make it centered
-        $(textCont).addClass('center')
+        $([textCont, sourceCont]).addClass('center')
     } else {
-        $(textCont).removeClass('center')
+        $([textCont, sourceCont]).removeClass('center')
     }
     entryBut.dataset.url = e.url || ''
     entryCont.scrollTop = 0
