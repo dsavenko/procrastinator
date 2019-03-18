@@ -37,6 +37,7 @@ const SOURCES_STORAGE_KEY = 'sources'
 const CACHE_STORAGE_KEY = 'cache'
 const SYNC_PERIOD = 1000 * 60 * 5 // 5 min
 const MIN_ALERT_INTERVAL = 1000 * 60 * 60 * 2 // 2 hours
+const MAX_ENTRIES_PER_SOURCE = 20
 
 const virtualDocument = document.implementation.createHTMLDocument('virtual')
 
@@ -276,8 +277,8 @@ async function addEntries(sourceName, newEntries) {
     // filter before syncing to sync less
     let filteredEntries = filterEntries(newEntries)
     await syncShown(filteredEntries)
-    // filter again after syncing
-    filteredEntries = filterEntries(filteredEntries)
+    // filter again after syncing, and crop
+    filteredEntries = filterEntries(filteredEntries).slice(0, MAX_ENTRIES_PER_SOURCE)
     const old = entries.length
     entries = entries.concat(filteredEntries)
     shuffle(entries)
