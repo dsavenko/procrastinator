@@ -257,6 +257,17 @@ function extractCharset(contentType) {
     return contentType && CHARSET_RGX.test(contentType) ? CHARSET_RGX.exec(contentType)[1].toLowerCase() : 'utf-8'
 }
 
+async function getFetchedText(resp) {
+    if ('TextDecoder' in window) {
+        const charset = extractCharset(resp.headers.get('content-type') || '')
+        const arrayBuffer = await resp.arrayBuffer()
+        return new TextDecoder(charset).decode(arrayBuffer)
+    } else {
+        // hope it's in UTF-8, nothing we can do
+        return await resp.text()
+    }
+}
+
 async function loadRssSource(name, url) {
     const parser = new RSSParser({
         customFields: {
@@ -267,8 +278,8 @@ async function loadRssSource(name, url) {
     if (!resp.ok) {
         throw new Error(`Error response from server: ${resp.statusText}`)
     }
-    let contentType = (resp.headers.get('content-type') || '').toLowerCase()
-    let arrayBuffer
+    const contentType = (resp.headers.get('content-type') || '').toLowerCase()
+    let text = await getFetchedText(resp)
     if (contentType.includes('text/html')) {
         const rssLink = extractRssLink(text)
         console.log(`found RSS link for ${name}: ${rssLink}`)
@@ -276,14 +287,8 @@ async function loadRssSource(name, url) {
         if (!resp.ok) {
             throw new Error(`Failed to load RSS from ${rssLink}, error response from server: ${resp.status} ${resp.statusText}`)
         }
-        contentType = (resp.headers.get('content-type') || '').toLowerCase()
-        arrayBuffer = await resp.arrayBuffer()
-    } else {
-        arrayBuffer = await resp.arrayBuffer()
+        text = await getFetchedText(resp)
     }
-    const charset = extractCharset(contentType)
-    const decoder = new TextDecoder(charset)
-    const text = new TextDecoder(charset).decode(arrayBuffer)
     const feed = await parser.parseString(text)
     return feed.items.map(e => {
         let imageUrl = (e.enclosure || {}).url
