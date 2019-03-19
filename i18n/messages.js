@@ -10,7 +10,7 @@ const PROC_MESSAGES = {
         'ok-btn': 'OK',
 
         'name-placeholder': 'Name',
-        'name-hint': 'unique, up to 10 chars',
+        'name-hint': 'unique, up to 20 chars',
         'addr-placeholder': 'Address',
         'addr-hint': 'Web address or RSS address',
 
@@ -65,7 +65,7 @@ const PROC_MESSAGES = {
         'ok-btn': 'OK',
 
         'name-placeholder': 'Имя',
-        'name-hint': 'уникальное, до 10 знаков',
+        'name-hint': 'уникальное, до 20 знаков',
         'addr-placeholder': 'Адрес',
         'addr-hint': 'адрес сайта (или адрес RSS)',
 

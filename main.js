@@ -27,17 +27,65 @@ const DEFAULT_SOURCES_EN = [
     {name: 'Onion', on: true, url: 'https://www.theonion.com/rss'},
     {name: 'TechCrunch', on: false, url: 'http://feeds.feedburner.com/TechCrunch/'},
 ]
+const CATEGORIES_RU = {
+    world: [
+        {name: 'Lenta', on: true, url: 'https://lenta.ru/rss'},
+        {name: 'Meduza', on: true, url: 'https://meduza.io/rss/all'},
+    ],
+    business: [
+        {name: 'Газета.Ru: Бизнес', on: true, url: 'https://www.gazeta.ru/export/rss/business.xml'},
+    ],
+    science: [
+        {name: 'NakedSci', on: true, url: 'http://naked-science.ru/feedrss.xml'},
+        {name: 'XX2 ВЕК', on: true, url: 'https://22century.ru/feed'},
+    ],
+    tech: [
+        {name: 'Habr', on: true, url: 'https://habr.com/rss/best/daily'},
+        {name: 'iXBT', on: true, url: 'https://www.ixbt.com/export/news.rss'},
+        {name: 'Компьютерра', on: true, url: 'https://www.computerra.ru/feed/'},
+    ],
+    games: [
+    ],
+    funny: [
+        {name: 'AdMe', on: true, url: 'https://www.adme.ru/rss'},
+    ]
+}
+const CATEGORIES_EN = {
+    world: [
+        {name: 'CNN', on: true, url: 'http://rss.cnn.com/rss/edition.rss'},
+        {name: 'NYT', on: true, url: 'http://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml'},
+        {name: 'RT', on: true, url: 'https://www.rt.com/rss/'},
+    ],
+    business: [
+    ],
+    science: [
+        {name: 'ScienceNews', on: true, url: 'https://www.sciencenews.org/feeds/headlines.rss'},
+        {name: 'ScienceAlert', on: true, url: 'http://feeds.feedburner.com/sciencealert-latestnews?format=xml'},
+        {name: 'ScienceDaily', on: true, url: 'https://www.sciencedaily.com/rss/top/science.xml'},
+    ],
+    tech: [
+        {name: 'Engadget', on: true, url: 'https://www.engadget.com/rss.xml'},
+        {name: 'TechCrunch', on: true, url: 'http://feeds.feedburner.com/TechCrunch/'},
+    ],
+    games: [
+    ],
+    funny: [
+        {name: 'Onion', on: true, url: 'https://www.theonion.com/rss'},
+    ]
+}
+
 const DEFAULT_CONFIG = {welcomeShown: false}
 const DUMMY_URL = 'dummy'
 const MAX_STORAGE_LEN = 10000
 const SUPPORTED_LOCALES = ['en', 'ru']
-const MAX_NAME_LEN = 10
+const MAX_NAME_LEN = 20
 const CONFIG_STORAGE_KEY = 'config'
 const SOURCES_STORAGE_KEY = 'sources'
 const CACHE_STORAGE_KEY = 'cache'
 const SYNC_PERIOD = 1000 * 60 * 5 // 5 min
 const MIN_ALERT_INTERVAL = 1000 * 60 * 60 * 2 // 2 hours
 const MAX_ENTRIES_PER_SOURCE = 20
+const CHARSET_RGX = /charset=([^()<>@,;:\"/[\]?.=\s]*)/i
 
 const virtualDocument = document.implementation.createHTMLDocument('virtual')
 
@@ -186,6 +234,29 @@ function extractRssLink(html) {
     return $(newDoc).find('link[type="application/rss+xml"]').attr('href')
 }
 
+function findString(obj) {
+    if (!obj) {
+        return ''
+    }
+    if (typeof obj === 'string') {
+        return obj
+    }
+    return findString(obj._)
+}
+
+function extractItemString(item, fieldName) {
+    let ret = item[fieldName]
+    if (typeof ret === 'string') {
+        return ret
+    }
+    console.log(`Got non-string ${fieldName} in item, trying to recover`, item)
+    return typeof ret._ === 'string' ? ret._ : ''
+}
+
+function extractCharset(contentType) {
+    return contentType && CHARSET_RGX.test(contentType) ? CHARSET_RGX.exec(contentType)[1].toLowerCase() : 'utf-8'
+}
+
 async function loadRssSource(name, url) {
     const parser = new RSSParser({
         customFields: {
@@ -196,8 +267,8 @@ async function loadRssSource(name, url) {
     if (!resp.ok) {
         throw new Error(`Error response from server: ${resp.statusText}`)
     }
-    const contentType = (resp.headers.get('content-type') || '').toLowerCase()
-    let text = await resp.text()
+    let contentType = (resp.headers.get('content-type') || '').toLowerCase()
+    let arrayBuffer
     if (contentType.includes('text/html')) {
         const rssLink = extractRssLink(text)
         console.log(`found RSS link for ${name}: ${rssLink}`)
@@ -205,8 +276,14 @@ async function loadRssSource(name, url) {
         if (!resp.ok) {
             throw new Error(`Failed to load RSS from ${rssLink}, error response from server: ${resp.status} ${resp.statusText}`)
         }
-        text = await resp.text()
+        contentType = (resp.headers.get('content-type') || '').toLowerCase()
+        arrayBuffer = await resp.arrayBuffer()
+    } else {
+        arrayBuffer = await resp.arrayBuffer()
     }
+    const charset = extractCharset(contentType)
+    const decoder = new TextDecoder(charset)
+    const text = new TextDecoder(charset).decode(arrayBuffer)
     const feed = await parser.parseString(text)
     return feed.items.map(e => {
         let imageUrl = (e.enclosure || {}).url
@@ -222,12 +299,14 @@ async function loadRssSource(name, url) {
                 imageUrl = (mediaContent[0].$ || {}).url
             }
         }
+        const title = extractItemString(e, 'title')
+        const content = extractItemString(e, 'content')
         if (!imageUrl) {
-            imageUrl = extractImageFromHtml(e.content) || extractImageFromHtml(e['content:encoded'])
+            imageUrl = extractImageFromHtml(content) || extractImageFromHtml(e['content:encoded'])
         }
         return {
-            title: htmlDecode(e.title),
-            text: htmlDecode(e.content),
+            title: htmlDecode(title),
+            text: htmlDecode(content),
             imageUrl: imageUrl,
             url: e.link,
             sourceName: name
@@ -348,14 +427,14 @@ function setEntry(e, noPrevious, noCache) {
     if (e.html) {
         textCont.innerHTML = e.html
     } else {
-        textCont.innerText = e.text || ''
+        textCont.innerText = (e.text || '').trim()
     }
     sourceCont.innerText = e.sourceName || ''
     if (textCont.offsetHeight <= textContSizeChecker.offsetHeight) {
         // single-line text -> make it centered
-        $([textCont, sourceCont]).addClass('center')
+        $(textCont).addClass('center')
     } else {
-        $([textCont, sourceCont]).removeClass('center')
+        $(textCont).removeClass('center')
     }
     entryBut.dataset.url = e.url || ''
     entryCont.scrollTop = 0
