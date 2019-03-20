@@ -33,7 +33,9 @@ const CATEGORIES_RU = {
         {name: 'Meduza', on: true, url: 'https://meduza.io/rss/all'},
     ],
     business: [
-        {name: 'Газета.Ru: Бизнес', on: true, url: 'https://www.gazeta.ru/export/rss/business.xml'},
+        {name: 'Газета.Ru: бизнес', on: true, url: 'https://www.gazeta.ru/export/rss/business.xml'},
+        {name: 'Рамблер: финансы', on: true, url: 'https://finance.rambler.ru/rss/business/latest/?limit=100'},
+        {name: 'Коммерсантъ: бизнес', on: true, url: 'https://www.kommersant.ru/RSS/section-business.xml'},
     ],
     science: [
         {name: 'NakedSci', on: true, url: 'http://naked-science.ru/feedrss.xml'},
@@ -45,9 +47,15 @@ const CATEGORIES_RU = {
         {name: 'Компьютерра', on: true, url: 'https://www.computerra.ru/feed/'},
     ],
     games: [
+        {name: 'Stopgame', on: true, url: 'https://rss.stopgame.ru/rss_news.xml'},
+        {name: 'Игромания', on: true, url: 'https://www.igromania.ru/rss/news.rss'},
     ],
-    funny: [
+    blogs: [
+        {name: 'Живой Журнал', on: true, url: 'https://medius.livejournal.com/data/rss/'},
+    ],
+    fun: [
         {name: 'AdMe', on: true, url: 'https://www.adme.ru/rss'},
+        {name: 'Fishki.net', on: true, url: 'https://fishki.net/rss/'},
     ]
 }
 const CATEGORIES_EN = {
@@ -57,6 +65,9 @@ const CATEGORIES_EN = {
         {name: 'RT', on: true, url: 'https://www.rt.com/rss/'},
     ],
     business: [
+        {name: 'BBC: business', on: true, url: 'http://feeds.bbci.co.uk/news/business/rss.xml'},
+        {name: 'CNN: business', on: true, url: 'http://rss.cnn.com/rss/money_topstories.rss'},
+        {name: 'RT: business', on: true, url: 'https://www.rt.com/rss/business/'},
     ],
     science: [
         {name: 'ScienceNews', on: true, url: 'https://www.sciencenews.org/feeds/headlines.rss'},
@@ -68,9 +79,15 @@ const CATEGORIES_EN = {
         {name: 'TechCrunch', on: true, url: 'http://feeds.feedburner.com/TechCrunch/'},
     ],
     games: [
+        {name: 'GameSpot', on: true, url: 'https://www.gamespot.com/feeds/game-news/'},
+        {name: 'Destructoid', on: true, url: 'https://www.destructoid.com/?mode=atom'},
     ],
-    funny: [
+    blogs: [
+    ],
+    fun: [
         {name: 'Onion', on: true, url: 'https://www.theonion.com/rss'},
+        {name: 'BoredPanda', on: true, url: 'https://www.boredpanda.com/feed/'},
+        {name: 'Cheezburger', on: true, url: 'https://www.cheezburger.com/rss'},
     ]
 }
 
@@ -86,6 +103,7 @@ const SYNC_PERIOD = 1000 * 60 * 5 // 5 min
 const MIN_ALERT_INTERVAL = 1000 * 60 * 60 * 2 // 2 hours
 const MAX_ENTRIES_PER_SOURCE = 20
 const CHARSET_RGX = /charset=([^()<>@,;:\"/[\]?.=\s]*)/i
+const RSS_MARKER_RGX = /<\s*rss /i
 
 const virtualDocument = document.implementation.createHTMLDocument('virtual')
 
@@ -249,8 +267,8 @@ function extractItemString(item, fieldName) {
     if (typeof ret === 'string') {
         return ret
     }
-    console.log(`Got non-string ${fieldName} in item, trying to recover`, item)
-    return typeof ret._ === 'string' ? ret._ : ''
+    //console.log(`Got non-string ${fieldName} in item, trying to recover`, item)
+    return ret && typeof ret._ === 'string' ? ret._ : ''
 }
 
 function extractCharset(contentType) {
@@ -263,7 +281,7 @@ async function getFetchedText(resp) {
         const arrayBuffer = await resp.arrayBuffer()
         return new TextDecoder(charset).decode(arrayBuffer)
     } else {
-        // hope it's in UTF-8, nothing we can do
+        // hope it's in UTF, nothing we can do
         return await resp.text()
     }
 }
@@ -282,12 +300,17 @@ async function loadRssSource(name, url) {
     let text = await getFetchedText(resp)
     if (contentType.includes('text/html')) {
         const rssLink = extractRssLink(text)
-        console.log(`found RSS link for ${name}: ${rssLink}`)
-        resp = await fetch(CORS_PROXY + rssLink)
-        if (!resp.ok) {
-            throw new Error(`Failed to load RSS from ${rssLink}, error response from server: ${resp.status} ${resp.statusText}`)
+        if (rssLink) {
+            console.log(`found RSS link for ${name}: ${rssLink}`)
+            resp = await fetch(CORS_PROXY + rssLink)
+            if (!resp.ok) {
+                throw new Error(`Failed to load RSS from ${rssLink}, error response from server: ${resp.status} ${resp.statusText}`)
+            }
+            text = await getFetchedText(resp)
+        } else if (!RSS_MARKER_RGX.test(text)) {
+            // trying to deal with the fact some websites return RSS with text/html content type
+            throw new Error(`RSS link not found for ${name}`)
         }
-        text = await getFetchedText(resp)
     }
     const feed = await parser.parseString(text)
     return feed.items.map(e => {
@@ -305,9 +328,9 @@ async function loadRssSource(name, url) {
             }
         }
         const title = extractItemString(e, 'title')
-        const content = extractItemString(e, 'content')
+        const content = extractItemString(e, 'content') || extractItemString(e, 'content:encoded')
         if (!imageUrl) {
-            imageUrl = extractImageFromHtml(content) || extractImageFromHtml(e['content:encoded'])
+            imageUrl = extractImageFromHtml(content) || extractImageFromHtml(extractItemString(e, 'content:encoded'))
         }
         return {
             title: htmlDecode(title),
