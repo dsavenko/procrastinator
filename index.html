@@ -68,6 +68,12 @@
             overflow: hidden;
             white-space: nowrap;
         }
+        .source-title {
+            flex-grow: 1;
+            text-align: center;
+            overflow: hidden;
+            white-space: nowrap;
+        }
         .alert {
             flex-grow: 1;
             text-align: center;
@@ -274,9 +280,9 @@
             <div id="logoBut">
                 П
             </div>
-            <div class="more invisible"></div>
-            <div id="langBut">
-            </div>
+            <div class="lang-cont invisible hidden">En</div> <!-- for symmetry -->
+            <div id="sourceTitle" class="source-title"></div>
+            <div id="langBut" class="lang-cont hidden"></div>
             <div id="settingsBut">
                 <img src="settings.svg">
             </div>
@@ -309,7 +315,6 @@
                 </div>
                 <div id="imageCont" class="img"></div>
                 <div id="textCont" class="text"></div>
-                <div id="sourceCont" class="text right faded italic"></div>
                 <div id="textContSizeChecker" class="text invisible">0</div>
             </div>
         </div>

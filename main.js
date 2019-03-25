@@ -434,7 +434,7 @@ function setEntry(e, noPrevious, noCache) {
     } else {
         textCont.innerText = (e.text || '').trim()
     }
-    sourceCont.innerText = e.sourceName || ''
+    sourceTitle.innerText = e.sourceName || ''
     if (textCont.offsetHeight <= textContSizeChecker.offsetHeight) {
         // single-line text -> make it centered
         $(textCont).addClass('center')
@@ -515,6 +515,7 @@ function onSettingsButClick() {
     if (!$(addCont).hasClass('hidden')) {
         toggleAddCont()
     }
+    $('.lang-cont').toggleClass('hidden')
     $('.gear-menu').toggleClass('hidden')
     $(settingsBut).toggleClass('enabled')
     if ($(settingsBut).hasClass('enabled')) {
@@ -874,9 +875,9 @@ function applyLocale() {
 
 function syncLangBut() {
     if ($.i18n().locale.startsWith('ru')) {
-        $(langBut).text('En')
+        $('.lang-cont').text('En')
     } else {
-        $(langBut).text('Ру')
+        $('.lang-cont').text('Ру')
     }
 }
 
