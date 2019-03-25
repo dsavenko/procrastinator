@@ -13,22 +13,9 @@ const POCKET_KEY = '84212-47555ab748057882b1c8516f'
 const POCKET_REDIRECT_HASH = '#pocket-redirect'
 
 const CORS_PROXY = 'https://proc-cors-eu.herokuapp.com/'
-const DEFAULT_SOURCES = [
-    {name: 'Lenta', on: true, url: 'https://lenta.ru/rss'},
-    {name: 'Meduza', on: true, url: 'https://meduza.io/rss/all'},
-    {name: 'AdMe', on: true, url: 'https://www.adme.ru/rss'},
-    {name: 'Habr', on: false, url: 'https://habr.com/rss/best/daily'},
-    {name: 'LOR', on: false, url: 'https://www.linux.org.ru/section-rss.jsp'}
-]
-const DEFAULT_SOURCES_EN = [
-    {name: 'CNN', on: true, url: 'http://rss.cnn.com/rss/edition.rss'},
-    {name: 'NYT', on: true, url: 'http://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml'},
-    {name: 'RT', on: true, url: 'https://www.rt.com/rss/'},
-    {name: 'Onion', on: true, url: 'https://www.theonion.com/rss'},
-    {name: 'TechCrunch', on: false, url: 'http://feeds.feedburner.com/TechCrunch/'},
-]
+const CATEGORIES = ['general', 'business', 'science', 'tech', 'games', 'fun']
 const CATEGORIES_RU = {
-    world: [
+    general: [
         {name: 'Lenta', on: true, url: 'https://lenta.ru/rss'},
         {name: 'Meduza', on: true, url: 'https://meduza.io/rss/all'},
     ],
@@ -56,7 +43,7 @@ const CATEGORIES_RU = {
     ]
 }
 const CATEGORIES_EN = {
-    world: [
+    general: [
         {name: 'CNN', on: true, url: 'http://rss.cnn.com/rss/edition.rss'},
         {name: 'NYT', on: true, url: 'http://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml'},
         {name: 'RT', on: true, url: 'https://www.rt.com/rss/'},
@@ -105,17 +92,12 @@ const virtualDocument = document.implementation.createHTMLDocument('virtual')
 let entries = []
 let previousEntry
 let currentEntry = {}
-let sources = DEFAULT_SOURCES.map(s => Object.assign({}, s))
+let sources = []
 let delMode = false
 let loadingSources = []
 let config = Object.assign({}, DEFAULT_CONFIG)
 let sourcesSyncTimeoutId
 let sourceAlertDate = {}
-
-function defaultSources() {
-    return ($.i18n().locale.startsWith('ru') ? 
-        DEFAULT_SOURCES : DEFAULT_SOURCES_EN).map(s => Object.assign({}, s))
-}
 
 function nothingEntry() {
     return {
@@ -743,8 +725,8 @@ async function downloadRemoteSources(doNotRestore) {
     }
 }
 
-function loadSources() {
-    sources = load(SOURCES_STORAGE_KEY) || defaultSources()
+async function loadSources() {
+    sources = load(SOURCES_STORAGE_KEY) || await getUserPreferredSources()
 }
 
 async function syncSources() {
@@ -801,16 +783,73 @@ function addSource() {
     toggleAddCont()
 }
 
+function showCategoryDialog(showCancel) {
+    return new Promise((resolve, reject) => {
+        const ret = [].concat(CATEGORIES)
+        
+        function catClick() {
+            const catDiv = $(this)
+            const name = catDiv.attr('data-category')
+            const newOn = !ret.includes(name)
+            if (newOn) {
+                ret.push(name)
+            } else {
+                removeA(ret, name)
+            }
+            catDiv.find('img').attr('src', newOn ? 'checked.svg' : 'unchecked.svg')
+        }
+
+        function doResolve(result) {
+            $(chooseCategories).addClass('hidden')
+            resolve(result)
+        }
+
+        $(chooseCategories).empty()
+        $(chooseCategories).append($('<div/>').text($.i18n('category-dialog-title')))
+        CATEGORIES.forEach(name => {
+            const catDiv = $('<div/>').attr('data-category', name)
+            catDiv.append(`<img class="checkbox" src="checked.svg"> ${$.i18n('category-' + name)}`)
+            catDiv.click(catClick)
+            $(chooseCategories).append(catDiv)
+        })
+        const okDiv = $('<div/>').text($.i18n('ok-btn'))
+        okDiv.click(() => {
+            if (0 >= ret.length) {
+                alert($.i18n('category-dialog-nothing-chosen-alert'))
+            } else {
+                doResolve(ret)
+            }
+        })
+        $(chooseCategories).append(okDiv)
+        if (showCancel) {
+            const cancelDiv = $('<div/>').text($.i18n('cancel-btn'))
+            cancelDiv.click(() => doResolve(false))
+            $(chooseCategories).append(cancelDiv)
+        }
+        $(chooseCategories).removeClass('hidden')
+    })
+}
+
+async function getUserPreferredSources(showCancel) {
+    const catsOn = await showCategoryDialog(showCancel)
+    const cats = $.i18n().locale.startsWith('ru') ? CATEGORIES_RU : CATEGORIES_EN
+    return catsOn.reduce((acc, name) => acc.concat(cats[name]), [])
+}
+
+async function doResetSources() {
+    sources = await getUserPreferredSources(true)
+    delMode = false
+    saveSources()
+    gaw('reset_sources')
+    syncSourcesUI()
+    entries = []
+    setEntry(loadingEntry())
+    loadEntries()
+}
+
 function resetSources() {
     if (confirm($.i18n('reset-confirm'))) {
-        sources = defaultSources()
-        delMode = false
-        saveSources()
-        gaw('reset_sources')
-        syncSourcesUI()
-        entries = []
-        setEntry(loadingEntry())
-        loadEntries()
+        doResetSources().catch(e => console.log('Failed to reset sources', e))
     }
 }
 
@@ -1053,7 +1092,7 @@ async function initApp(args) {
     if (args && args.showAlert) {
         procAlert(args.showAlert)
     }
-    loadSources()
+    await loadSources()
     applyLocale()
     syncSourcesUI()
     loadCache()

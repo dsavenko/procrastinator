@@ -8,6 +8,7 @@ const PROC_MESSAGES = {
         'delete-btn': 'Delete',
         'reset-btn': 'Reset',
         'ok-btn': 'OK',
+        'cancel-btn': 'Cancel',
 
         'name-placeholder': 'Name',
         'name-hint': 'unique, up to 20 chars',
@@ -48,11 +49,20 @@ const PROC_MESSAGES = {
         'name-exists-alert': 'This name is already used',
         'no-rss-addr-alert': 'Please, enter an RSS address',
         'rss-addr-exists-alert': 'This RSS address is already used for $1',
-        'reset-confirm': 'Get back to the standard sites? All your changes will be lost.',
+        'reset-confirm': 'Set up sources again? All your changes will be lost.',
         'delete-confirm': 'Delete $1?',
 
         'added-to-pocket-alert': 'Saved to Pocket',
         'failed-to-add-to-pocket-confirm': 'Failed to save to Pocket :( Try again?',
+
+        'category-dialog-title': 'What would you like to read?',
+        'category-dialog-nothing-chosen-alert': 'Please choose something',
+        'category-general': 'Just news',
+        'category-business': 'Business',
+        'category-science': 'Science',
+        'category-tech': 'Technology',
+        'category-games': 'Games',
+        'category-fun': 'Fun',
     },
     
     ru: {
@@ -63,6 +73,7 @@ const PROC_MESSAGES = {
         'delete-btn': 'Удалить',
         'reset-btn': 'Сбросить',
         'ok-btn': 'OK',
+        'cancel-btn': 'Отмена',
 
         'name-placeholder': 'Имя',
         'name-hint': 'уникальное, до 20 знаков',
@@ -103,10 +114,19 @@ const PROC_MESSAGES = {
         'name-exists-alert': 'Это имя уже используется',
         'no-rss-addr-alert': 'Пожалуйста, введите адрес RSS',
         'rss-addr-exists-alert': 'Этот адрес уже используется для $1',
-        'reset-confirm': 'Вернуться к стандартному набору сайтов? Все ваши изменения буду утеряны.',
+        'reset-confirm': 'Настроить источники снова? Все ваши изменения буду утеряны.',
         'delete-confirm': 'Удалить $1?',
 
         'added-to-pocket-alert': 'Сохранил в Pocket',
         'failed-to-add-to-pocket-confirm': 'Не смог сохранить в Pocket :( Попробовать снова?',
+
+        'category-dialog-title': 'Что бы вы хотели почитать?',
+        'category-dialog-nothing-chosen-alert': 'Пожалуйста, выберите что-нибудь',
+        'category-general': 'Просто новости',
+        'category-business': 'Бизнес',
+        'category-science': 'Наука',
+        'category-tech': 'Технология',
+        'category-games': 'Игры',
+        'category-fun': 'Развлекательное',
     }
 }
