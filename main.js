@@ -50,9 +50,6 @@ const CATEGORIES_RU = {
         {name: 'Stopgame', on: true, url: 'https://rss.stopgame.ru/rss_news.xml'},
         {name: 'Игромания', on: true, url: 'https://www.igromania.ru/rss/news.rss'},
     ],
-    blogs: [
-        {name: 'Живой Журнал', on: true, url: 'https://medius.livejournal.com/data/rss/'},
-    ],
     fun: [
         {name: 'AdMe', on: true, url: 'https://www.adme.ru/rss'},
         {name: 'Fishki.net', on: true, url: 'https://fishki.net/rss/'},
@@ -81,8 +78,6 @@ const CATEGORIES_EN = {
     games: [
         {name: 'GameSpot', on: true, url: 'https://www.gamespot.com/feeds/game-news/'},
         {name: 'Destructoid', on: true, url: 'https://www.destructoid.com/?mode=atom'},
-    ],
-    blogs: [
     ],
     fun: [
         {name: 'Onion', on: true, url: 'https://www.theonion.com/rss'},
