@@ -32,14 +32,26 @@
         .flex.center {
             justify-content: center;
         }
+        .flex.evenly {
+            justify-content: space-evenly;
+        }
+        .flex.start {
+            align-items: flex-start;
+        }
         .flex.middle {
             align-items: center;
+        }
+        .flex.stretch {
+            align-items: stretch;
         }
         .flex.wrap {
             flex-wrap: wrap;
         }
         .flex.column {
             flex-direction: column;
+        }
+        .pointer {
+            cursor: pointer;
         }
         .ribbon {
             margin: 0;
@@ -135,6 +147,9 @@
             max-height: 100%;
             flex-grow: 1;
         }
+        .grow {
+            flex-grow: 1;
+        }
         .overflow {
             overflow: auto;
         }
@@ -156,8 +171,8 @@
             color: #fff;
             display: flex;
             justify-content: space-around;
-            align-items: stretch;
             font-size: 2em;
+            align-items: stretch;
             -webkit-touch-callout: none; /* iOS Safari */
             -webkit-user-select: none; /* Safari */
             -khtml-user-select: none; /* Konqueror HTML */
@@ -166,13 +181,11 @@
             user-select: none; 
         }
         .dialog > div {
-            flex-grow: 1;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            cursor: pointer;
-            white-space: nowrap;
+            text-align: center;
         }
         #splash {
             background-color: #FF4136;
@@ -270,8 +283,8 @@
         <div class="pulsate">П</div>
     </div>
     <div id="chooseLang" class="dialog flex column hidden">
-        <div id="chooseEnglishBut">In English</div>
-        <div id="chooseRussianBut">По-русски</div>
+        <div id="chooseEnglishBut" class="grow pointer">In English</div>
+        <div id="chooseRussianBut" class="grow pointer">По-русски</div>
     </div>
     <div id="chooseCategories" class="dialog flex column hidden">
     </div>

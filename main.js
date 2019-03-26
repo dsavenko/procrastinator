@@ -807,13 +807,19 @@ function showCategoryDialog(showCancel) {
 
         $(chooseCategories).empty()
         $(chooseCategories).append($('<div/>').text($.i18n('category-dialog-title')))
+        const catDivCont = $('<div/>').addClass('flex evenly column start overflow')
         CATEGORIES.forEach(name => {
-            const catDiv = $('<div/>').attr('data-category', name)
+            const catDiv = $('<div/>').attr('data-category', name).addClass('pointer')
             catDiv.append(`<img class="checkbox" src="checked.svg"> ${$.i18n('category-' + name)}`)
             catDiv.click(catClick)
-            $(chooseCategories).append(catDiv)
+            $(catDivCont).append(catDiv)
         })
-        const okDiv = $('<div/>').text($.i18n('ok-btn'))
+        const tmp = $('<div/>').addClass('flex stretch grow')
+            .append($('<div/>').addClass('grow'))
+            .append(catDivCont)
+            .append($('<div/>').addClass('grow'))
+        $(chooseCategories).append(tmp)
+        const okDiv = $('<div/>').addClass('pointer').text($.i18n('ok-btn'))
         okDiv.click(() => {
             if (0 >= ret.length) {
                 alert($.i18n('category-dialog-nothing-chosen-alert'))
@@ -823,7 +829,7 @@ function showCategoryDialog(showCancel) {
         })
         $(chooseCategories).append(okDiv)
         if (showCancel) {
-            const cancelDiv = $('<div/>').text($.i18n('cancel-btn'))
+            const cancelDiv = $('<div/>').addClass('pointer').text($.i18n('cancel-btn'))
             cancelDiv.click(() => doResolve(false))
             $(chooseCategories).append(cancelDiv)
         }
