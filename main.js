@@ -474,6 +474,7 @@ function pickEntry() {
 }
 
 function onLogoButClick() {
+    hideSettings()
     setEntry(welcomeEntry())
     gaw('show_welcome')
 }
@@ -485,6 +486,7 @@ function onPreviousButClick() {
             entries.unshift(currentEntry)
         }
         setEntry(previousEntry, true)
+        hideSettings()
     }
 }
 
@@ -495,6 +497,7 @@ function onMoreButClick() {
     } else {
         setEntry(pickEntry())
     }
+    hideSettings()
 }
 
 function loadFirstEntry() {
@@ -511,14 +514,28 @@ function onEntryButClick() {
     }
 }
 
-function onSettingsButClick() {
+function isSettingsShown() {
+    return $(settingsBut).hasClass('enabled')
+}
+
+function toggleSettings() {
     if (!$(addCont).hasClass('hidden')) {
         toggleAddCont()
     }
     $('.lang-cont').toggleClass('hidden')
     $('.gear-menu').toggleClass('hidden')
     $(settingsBut).toggleClass('enabled')
-    if ($(settingsBut).hasClass('enabled')) {
+}
+
+function hideSettings() {
+    if (isSettingsShown()) {
+        toggleSettings()
+    }
+}
+
+function onSettingsButClick() {
+    toggleSettings()
+    if (isSettingsShown()) {
         gaw('settings')
     }
 }
@@ -1021,6 +1038,7 @@ function clearPocketData() {
 }
 
 function onPocketButClick() {
+    hideSettings()
     hidePocketBut()
     addToPocket()
         .then(isAdded => {
