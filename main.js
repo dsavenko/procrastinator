@@ -1068,7 +1068,7 @@ function procAlert(msgKey, param) {
     const alertCont = $('.alert-cont-prototype').clone().addClass('alert-cont')
     alertCont.find('.alert').text($.i18n(msgKey, param))
     alertCont.find('.alert-close').click(removeNodeParent)
-    alertCont.insertAfter('#entryCont')
+    alertCont.insertAfter('#entryBut')
     alertCont.removeClass('alert-cont-prototype hidden')
 }
 
