@@ -442,7 +442,7 @@ function setEntry(e, noPrevious, noCache) {
         $(textCont).removeClass('center')
     }
     entryBut.dataset.url = e.url || ''
-    entryCont.scrollTop = 0
+    entryBut.scrollTop = 0
     if (isRealUrl(e.url)) {
         rememberShown(e)
     }
