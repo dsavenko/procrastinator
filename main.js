@@ -747,12 +747,30 @@ async function loadSources() {
     sources = load(SOURCES_STORAGE_KEY) || await getUserPreferredSources()
 }
 
+function isSourcesEqual(sources1, sources2) {
+    if (sources1.length != sources2.length) {
+        return false
+    }
+    for (let i = 0; i < sources1.length; ++i) {
+        const s1 = sources1[i]
+        const s2 = sources2[i]
+        if (s1.name !== s2.name || s1.on !== s2.on || s1.url !== s2.url) {
+            return false
+        }
+    }
+    return true
+}
+
 async function syncSources() {
     if (isLoggedIn()) {
         await syncSourcesId()
+        const oldSources = sources
         await downloadRemoteSources()
-        syncSourcesUI()
-        loadEntries()
+        if (!isSourcesEqual(oldSources, sources)) {
+            console.log('Sources changed, reloading')
+            syncSourcesUI()
+            loadEntries()
+        }
     }
 }
 
