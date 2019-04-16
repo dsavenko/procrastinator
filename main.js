@@ -25,11 +25,11 @@ const CATEGORIES_RU = {
         {name: 'Коммерсантъ: бизнес', on: true, url: 'https://www.kommersant.ru/RSS/section-business.xml'},
     ],
     science: [
-        {name: 'NakedSci', on: true, url: 'http://naked-science.ru/feedrss.xml'},
+        {name: 'NakedSci', on: true, url: 'https://naked-science.ru/feedrss.xml'},
         {name: 'XX2 ВЕК', on: true, url: 'https://22century.ru/feed'},
     ],
     tech: [
-        {name: 'Habr', on: true, url: 'https://habr.com/rss/best/daily'},
+        {name: 'Habr', on: true, url: 'https://habr.com/ru/rss/best/daily/'},
         {name: 'iXBT', on: true, url: 'https://www.ixbt.com/export/news.rss'},
         {name: 'Компьютерра', on: true, url: 'https://www.computerra.ru/feed/'},
     ],
@@ -38,7 +38,7 @@ const CATEGORIES_RU = {
         {name: 'Игромания', on: true, url: 'https://www.igromania.ru/rss/news.rss'},
     ],
     fun: [
-        {name: 'AdMe', on: true, url: 'https://www.adme.ru/rss'},
+        {name: 'AdMe', on: true, url: 'https://www.adme.ru/rss/'},
         {name: 'Fishki.net', on: true, url: 'https://fishki.net/rss/'},
     ]
 }
