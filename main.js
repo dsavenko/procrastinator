@@ -198,25 +198,6 @@ function isSourceOn(name) {
     return source && source.on
 }
 
-function htmlDecode(value) {
-    let str = value || ''
-    // remove all inside SCRIPT and STYLE tags
-    str = str.replace(/<script\b[^>]*>[\w\W]{1,}(.*?)[\w\W]{1,}<\/script>/gi, '')
-    str = str.replace(/<style\b[^>]*>[\w\W]{1,}(.*?)[\w\W]{1,}<\/style>/gi, '')
-    // replace p and br with line breaks
-    str = str.replace(/<\s*p\b[^>]*>/gi, '\n\n')
-    str = str.replace(/<\s*br\b[^>]*>/gi, '\n')
-    // remove other tags
-    str = str.replace(/<(?:.|\s)*?>/g, '')
-    // get rid of more than 2 line breaks
-    str = str.replace(/(?:(?:\r\n|\r|\n)\s*){2,}/gim, '\n\n')
-    // get rid of more than 2 spaces
-    str = str.replace(/ +(?= )/g,'')
-    // convert html-encoded entities
-    str = $('<textarea/>').html(str).text()
-    return str
-}
-
 function extractImageFromHtml(content) {
     if (content) {
         const tmpDom = $('<div>', virtualDocument).append($.parseHTML(content))
@@ -310,8 +291,8 @@ async function loadRssSource(name, url) {
             imageUrl = extractImageFromHtml(content) || extractImageFromHtml(extractItemString(e, 'content:encoded'))
         }
         return {
-            title: htmlDecode(title),
-            text: htmlDecode(content),
+            htmlTitle: title,
+            htmlText: content,
             imageUrl: imageUrl,
             url: e.link,
             sourceName: name
@@ -353,6 +334,32 @@ async function syncShown(newEntries) {
     }
 }
 
+function htmlDecode(value) {
+    let str = value || ''
+    const tmpDom = $('<div>', virtualDocument).append($.parseHTML(str))
+    // set line breaks before P and BR
+    tmpDom.find('p').before(virtualDocument.createTextNode('\n\n'))
+    tmpDom.find('br').before(virtualDocument.createTextNode('\n'))
+    // remove tags
+    str = tmpDom.text()
+    // get rid of more than 2 line breaks
+    str = str.replace(/(?:(?:\r\n|\r|\n)\s*){2,}/gim, '\n\n')
+    // get rid of more than 2 spaces
+    str = str.replace(/ +(?= )/g,'')
+    return str
+}
+
+function decodeEntries(rawEntries) {
+    rawEntries.forEach(e => {
+        if (!e.title) {
+            e.title = htmlDecode(e.htmlTitle || '')
+        }
+        if (!e.text) {
+            e.text = htmlDecode(e.htmlText || '')
+        }
+    })
+}
+
 async function addEntries(sourceName, newEntries) {
     removeSourceEntries(sourceName)
     if (!isSourceOn(sourceName)) {
@@ -363,6 +370,7 @@ async function addEntries(sourceName, newEntries) {
     await syncShown(filteredEntries)
     // filter again after syncing, and crop
     filteredEntries = filterEntries(filteredEntries).slice(0, MAX_ENTRIES_PER_SOURCE)
+    decodeEntries(filteredEntries)
     const old = entries.length
     entries = entries.concat(filteredEntries)
     shuffle(entries)
