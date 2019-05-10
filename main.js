@@ -297,7 +297,7 @@ async function loadRssSource(name, url) {
             url: e.link,
             sourceName: name
         }
-    })
+    }).filter(e => (e.htmlTitle || '').trim() || (e.htmlText || '').trim())
 }
 
 function isShown(entry) {
