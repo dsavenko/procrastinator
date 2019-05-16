@@ -1,0 +1,23 @@
+{
+  "name": "procrastinator",
+  "version": "1.0.0",
+  "description": "**[Procrastinator](https://procrastinator.one)** gathers news and articles from other resources and shows them one by one.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dsavenko/procrastinator.git"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/dsavenko/procrastinator/issues"
+  },
+  "homepage": "https://github.com/dsavenko/procrastinator#readme",
+  "dependencies": {
+    "node-static": "0.7.11"
+  }
+}
