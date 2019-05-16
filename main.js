@@ -73,6 +73,23 @@ const CATEGORIES_EN = {
     ]
 }
 
+const BASIC_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'i', 'em', 'b', 'strong', 
+    'ul', 'ol', 'li', 'hr', 's', 'u', 'small', 'sub', 'sup']
+
+const TAGS_TO_UNWRAP = ['blockquote', 'dl', 'dt', 'dd', 'code', 'del', 'pre', 'a',
+    'table', 'th', 'tr', 'td', 'thead', 'tbody', 'tfoot', 'div', 'span',
+    'article', 'details', 'footer', 'header', 'main', 'mark', 'section', 'summary', 
+    'time', 'wbr', 'font', 'center', 'cite']
+
+const EXTENDED_TAG_SELECTOR = BASIC_TAGS.reduce(function(ret, t) {
+        return ret + ':not(' + t + ')'
+    }, '')
+
+const UNWRAP_TAG_SELECTOR = TAGS_TO_UNWRAP.reduce(function(ret, t) {
+        return ret + ',' + t
+    })
+console.log('UNWRAP', UNWRAP_TAG_SELECTOR)
+
 const DEFAULT_CONFIG = {welcomeShown: false}
 const DUMMY_URL = 'dummy'
 const MAX_STORAGE_LEN = 10000
@@ -338,7 +355,7 @@ function htmlDecode(value) {
     let str = value || ''
     const tmpDom = $('<div>', virtualDocument).append($.parseHTML(str))
     // set line breaks before P and BR
-    tmpDom.find('p').before(virtualDocument.createTextNode('\n\n'))
+    tmpDom.find('p, li').before(virtualDocument.createTextNode('\n\n'))
     tmpDom.find('br').before(virtualDocument.createTextNode('\n'))
     // remove tags
     str = tmpDom.text()
@@ -349,6 +366,14 @@ function htmlDecode(value) {
     return str
 }
 
+function sanitizeHtml(value) {
+    let str = value || ''
+    const tmpDom = $('<div>', virtualDocument).append($.parseHTML(str))
+    tmpDom.find(UNWRAP_TAG_SELECTOR).contents().unwrap()
+    tmpDom.find(EXTENDED_TAG_SELECTOR).remove()
+    return tmpDom.html()
+}
+
 function decodeEntries(rawEntries) {
     rawEntries.forEach(e => {
         if (!e.title) {
@@ -356,6 +381,9 @@ function decodeEntries(rawEntries) {
         }
         if (!e.text) {
             e.text = htmlDecode(e.htmlText || '')
+        }
+        if (!e.html) {
+            e.html = sanitizeHtml(e.htmlText || '')
         }
     })
 }
