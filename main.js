@@ -88,7 +88,6 @@ const EXTENDED_TAG_SELECTOR = BASIC_TAGS.reduce(function(ret, t) {
 const UNWRAP_TAG_SELECTOR = TAGS_TO_UNWRAP.reduce(function(ret, t) {
         return ret + ',' + t
     })
-console.log('UNWRAP', UNWRAP_TAG_SELECTOR)
 
 const DEFAULT_CONFIG = {welcomeShown: false}
 const DUMMY_URL = 'dummy'
