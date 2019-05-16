@@ -73,10 +73,10 @@ const CATEGORIES_EN = {
     ]
 }
 
-const BASIC_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'i', 'em', 'b', 'strong', 
+const BASIC_TAGS = ['blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'i', 'em', 'b', 'strong', 
     'ul', 'ol', 'li', 'hr', 's', 'u', 'small', 'sub', 'sup']
 
-const TAGS_TO_UNWRAP = ['blockquote', 'dl', 'dt', 'dd', 'code', 'del', 'pre', 'a',
+const TAGS_TO_UNWRAP = ['dl', 'dt', 'dd', 'code', 'del', 'pre', 'a',
     'table', 'th', 'tr', 'td', 'thead', 'tbody', 'tfoot', 'div', 'span',
     'article', 'details', 'footer', 'header', 'main', 'mark', 'section', 'summary', 
     'time', 'wbr', 'font', 'center', 'cite']
@@ -365,11 +365,53 @@ function htmlDecode(value) {
     return str
 }
 
+function removeAllNodes(jquerySetProducer) {
+    for (let s = jquerySetProducer(); s.length > 0; s = jquerySetProducer()) {
+        s.remove()
+    }
+}
+
+function getTextNodesIn(node, includeWhitespaceNodes) {
+    const whitespace = /^\s*$/
+    let textNodes = []
+
+    function getTextNodes(node) {
+        if (node.nodeType == 3) {
+            if (includeWhitespaceNodes || !whitespace.test(node.nodeValue)) {
+                textNodes.push(node)
+            }
+        } else {
+            for (let i = 0, len = node.childNodes.length; i < len; ++i) {
+                getTextNodes(node.childNodes[i])
+            }
+        }
+    }
+
+    getTextNodes(node)
+    return textNodes
+}
+
+function wrapTextInP(jqSet) {
+    const parent = jqSet[0]
+    parent.normalize()
+    var textnodes = getTextNodesIn(parent)
+    for (let i = 0; i < textnodes.length; i++) {
+        if ($(textnodes[i]).parent().is(jqSet)) {
+            $(textnodes[i]).wrap('<p>')
+        }
+    }
+}
+
 function sanitizeHtml(value) {
     let str = value || ''
     const tmpDom = $('<div>', virtualDocument).append($.parseHTML(str))
     tmpDom.find(UNWRAP_TAG_SELECTOR).contents().unwrap()
     tmpDom.find(EXTENDED_TAG_SELECTOR).remove()
+    removeAllNodes(() => tmpDom.find('p + br'))
+    removeAllNodes(() => tmpDom.find('p').prev('br'))
+    tmpDom.find('h1, h2, h3').replaceWith(function() { return '<h3>' + $(this).html() + '</h3>' })
+    wrapTextInP(tmpDom)
+    tmpDom.find('br').remove()
     return tmpDom.html()
 }
 
