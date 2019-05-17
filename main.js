@@ -448,14 +448,14 @@ function setEntry(e, noPrevious, noCache) {
     decodeEntry(e)
     titleCont.innerText = e.title || ''
     $(imageCont).empty()
-    if (isRealUrl(e.imageUrl)) {
-        $(imageCont).append($('<img/>').attr('src', e.imageUrl))
-    }
     if (e.html) {
         textCont.innerHTML = e.html
         $(textCont).find('a').on('click', entryOnClick)
     } else {
         textCont.innerText = (e.text || '').trim()
+    }
+    if (isRealUrl(e.imageUrl) && 0 == $(textCont).find('img').length) {
+        $(imageCont).append($('<img/>').attr('src', e.imageUrl))
     }
     sourceTitle.innerText = e.sourceName || ''
     if (textCont.offsetHeight <= textContSizeChecker.offsetHeight) {
