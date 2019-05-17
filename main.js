@@ -295,7 +295,8 @@ async function loadRssSource(name, url) {
             htmlText: content,
             imageUrl: imageUrl,
             url: e.link,
-            sourceName: name
+            sourceName: name,
+            author: e.author
         }
     }).filter(e => (e.htmlTitle || '').trim() || (e.htmlText || '').trim())
 }
@@ -464,7 +465,11 @@ function setEntry(e, noPrevious, noCache) {
     if (isRealUrl(imageSrc)) {
         $(imageCont).append($('<img/>').attr('src', imageSrc))
     }
-    sourceTitle.innerText = e.sourceName || ''
+    let srcTitle = e.sourceName || ''
+    if (e.author) {
+        srcTitle = `${e.author} (${srcTitle})`
+    }
+    sourceTitle.innerText = srcTitle
     if (textCont.offsetHeight <= textContSizeChecker.offsetHeight) {
         // single-line text -> make it centered
         $(textCont).addClass('center')
