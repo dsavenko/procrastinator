@@ -357,18 +357,13 @@ function sanitizeHtml(value) {
     return tmpDom.html()
 }
 
-function decodeEntries(rawEntries) {
-    rawEntries.forEach(e => {
-        if (!e.title) {
-            e.title = htmlDecode(e.htmlTitle || '')
-        }
-        if (!e.text) {
-            e.text = htmlDecode(e.htmlText || '')
-        }
-        if (!e.html) {
-            e.html = sanitizeHtml(e.htmlText || '')
-        }
-    })
+function decodeEntry(e) {
+    if (!e.title) {
+        e.title = htmlDecode(e.htmlTitle || '')
+    }
+    if (!e.html) {
+        e.html = sanitizeHtml(e.htmlText || '')
+    }
 }
 
 async function addEntries(sourceName, newEntries) {
@@ -381,7 +376,6 @@ async function addEntries(sourceName, newEntries) {
     await syncShown(filteredEntries)
     // filter again after syncing, and crop
     filteredEntries = filterEntries(filteredEntries).slice(0, MAX_ENTRIES_PER_SOURCE)
-    decodeEntries(filteredEntries)
     const old = entries.length
     entries = entries.concat(filteredEntries)
     shuffle(entries)
@@ -451,6 +445,7 @@ function entryOnClick(e) {
 function setEntry(e, noPrevious, noCache) {
     clearAllAlerts()
     e = e || {}
+    decodeEntry(e)
     titleCont.innerText = e.title || ''
     $(imageCont).empty()
     if (isRealUrl(e.imageUrl)) {
