@@ -73,21 +73,15 @@ const CATEGORIES_EN = {
     ]
 }
 
-const BASIC_TAGS = ['blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'i', 'em', 'b', 'strong', 
-    'ul', 'ol', 'li', 'hr', 's', 'u', 'small', 'sub', 'sup']
-
-const TAGS_TO_UNWRAP = ['dl', 'dt', 'dd', 'code', 'del', 'pre', 'a',
-    'table', 'th', 'tr', 'td', 'thead', 'tbody', 'tfoot', 'div', 'span',
-    'article', 'details', 'footer', 'header', 'main', 'mark', 'section', 'summary', 
+const BASIC_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'blockquote', 'br', 'i', 'em', 'b', 'strong', 
+    'ul', 'ol', 'li', 'dl', 'dt', 'dd', 'hr', 'code', 'del', 'pre', 's', 'u', 'small', 'sub', 'sup', 'img', 
+    'audio', 'video', 'source', 'a', 'table', 'th', 'tr', 'td', 'thead', 'tbody', 'tfoot', 'div', 'span',
+    'article', 'details', 'figcaption', 'figure', 'footer', 'header', 'main', 'mark', 'section', 'summary', 
     'time', 'wbr', 'font', 'center', 'cite']
 
 const EXTENDED_TAG_SELECTOR = BASIC_TAGS.reduce(function(ret, t) {
         return ret + ':not(' + t + ')'
     }, '')
-
-const UNWRAP_TAG_SELECTOR = TAGS_TO_UNWRAP.reduce(function(ret, t) {
-        return ret + ',' + t
-    })
 
 const DEFAULT_CONFIG = {welcomeShown: false}
 const DUMMY_URL = 'dummy'
@@ -214,13 +208,6 @@ function isSourceOn(name) {
     return source && source.on
 }
 
-function extractImageFromHtml(content) {
-    if (content) {
-        const tmpDom = $('<div>', virtualDocument).append($.parseHTML(content))
-        return $('img', tmpDom).attr('src')
-    }
-}
-
 function extractRssLink(html) {
     const newDoc = new DOMParser().parseFromString(html, 'text/html')
     return $(newDoc).find('link[type="application/rss+xml"]').attr('href')
@@ -303,9 +290,6 @@ async function loadRssSource(name, url) {
         }
         const title = extractItemString(e, 'title')
         const content = extractItemString(e, 'content') || extractItemString(e, 'content:encoded')
-        if (!imageUrl) {
-            imageUrl = extractImageFromHtml(content) || extractImageFromHtml(extractItemString(e, 'content:encoded'))
-        }
         return {
             htmlTitle: title,
             htmlText: content,
@@ -365,45 +349,11 @@ function htmlDecode(value) {
     return str
 }
 
-function getTextNodesIn(node, includeWhitespaceNodes) {
-    const whitespace = /^\s*$/
-    let textNodes = []
-
-    function getTextNodes(node) {
-        if (node.nodeType == 3) {
-            if (includeWhitespaceNodes || !whitespace.test(node.nodeValue)) {
-                textNodes.push(node)
-            }
-        } else {
-            for (let i = 0, len = node.childNodes.length; i < len; ++i) {
-                getTextNodes(node.childNodes[i])
-            }
-        }
-    }
-
-    getTextNodes(node)
-    return textNodes
-}
-
-function wrapTextInP(jqSet) {
-    const parent = jqSet[0]
-    parent.normalize()
-    var textnodes = getTextNodesIn(parent)
-    for (let i = 0; i < textnodes.length; i++) {
-        if ($(textnodes[i]).parent().is(jqSet)) {
-            $(textnodes[i]).wrap('<p>')
-        }
-    }
-}
-
 function sanitizeHtml(value) {
     let str = value || ''
     const tmpDom = $('<div>', virtualDocument).append($.parseHTML(str))
-    tmpDom.find(UNWRAP_TAG_SELECTOR).contents().unwrap()
     tmpDom.find(EXTENDED_TAG_SELECTOR).remove()
     tmpDom.find('h1, h2, h3').replaceWith(function() { return '<h3>' + $(this).html() + '</h3>' })
-    wrapTextInP(tmpDom)
-    tmpDom.find('br').remove()
     return tmpDom.html()
 }
 
@@ -490,6 +440,14 @@ function hidePocketBut() {
     $(pocketBut).addClass('invisible')
 }
 
+function entryOnClick(e) {
+    const href = $(this).attr('href')
+    if (isRealUrl(href)) {
+        window.open(href, '_blank')
+        e.stopPropagation()
+    }
+}
+
 function setEntry(e, noPrevious, noCache) {
     clearAllAlerts()
     e = e || {}
@@ -500,6 +458,7 @@ function setEntry(e, noPrevious, noCache) {
     }
     if (e.html) {
         textCont.innerHTML = e.html
+        $(textCont).find('a').on('click', entryOnClick)
     } else {
         textCont.innerText = (e.text || '').trim()
     }
