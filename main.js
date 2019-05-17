@@ -1143,6 +1143,36 @@ function procAlert(msgKey, param) {
     alertCont.removeClass('alert-cont-prototype hidden')
 }
 
+function scrollEntry(y) {
+    entryBut.scrollTop += y
+}
+
+function registerKeyboardEvents() {
+    document.addEventListener('keyup', e => {
+        switch (e.which) {
+            case 8:
+                onPreviousButClick()
+                break
+            case 13:
+                onEntryButClick()
+                break
+            case 32:
+                onMoreButClick()
+                break
+        }
+    })
+    document.addEventListener('keydown', e => {
+        switch (e.which) {
+            case 38:
+                scrollEntry(-50)
+                break
+            case 40:
+                scrollEntry(50)
+                break
+        }
+    })
+}
+
 async function initApp(args) {
     logoBut.onclick = onLogoButClick
     moreBut.onclick = onMoreButClick
@@ -1157,11 +1187,7 @@ async function initApp(args) {
     resetBut.onclick = resetSources
     showAddBut.onclick = toggleAddCont
 
-    document.addEventListener('keyup', e => {
-        if (32 == e.which) {
-            onMoreButClick()
-        }
-    })
+    registerKeyboardEvents()
 
     syncLogInBut()
     syncLangBut()
