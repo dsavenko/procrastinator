@@ -365,12 +365,6 @@ function htmlDecode(value) {
     return str
 }
 
-function removeAllNodes(jquerySetProducer) {
-    for (let s = jquerySetProducer(); s.length > 0; s = jquerySetProducer()) {
-        s.remove()
-    }
-}
-
 function getTextNodesIn(node, includeWhitespaceNodes) {
     const whitespace = /^\s*$/
     let textNodes = []
@@ -407,8 +401,6 @@ function sanitizeHtml(value) {
     const tmpDom = $('<div>', virtualDocument).append($.parseHTML(str))
     tmpDom.find(UNWRAP_TAG_SELECTOR).contents().unwrap()
     tmpDom.find(EXTENDED_TAG_SELECTOR).remove()
-    removeAllNodes(() => tmpDom.find('p + br'))
-    removeAllNodes(() => tmpDom.find('p').prev('br'))
     tmpDom.find('h1, h2, h3').replaceWith(function() { return '<h3>' + $(this).html() + '</h3>' })
     wrapTextInP(tmpDom)
     tmpDom.find('br').remove()
