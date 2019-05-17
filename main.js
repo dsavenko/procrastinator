@@ -437,8 +437,9 @@ function hidePocketBut() {
 function entryOnClick(e) {
     const href = $(this).attr('href')
     if (isRealUrl(href)) {
-        window.open(href, '_blank')
+        e.preventDefault()
         e.stopPropagation()
+        window.open(href, '_blank')
     }
 }
 
@@ -450,7 +451,7 @@ function setEntry(e, noPrevious, noCache) {
     $(imageCont).empty()
     if (e.html) {
         textCont.innerHTML = e.html
-        $(textCont).find('a').on('click', entryOnClick)
+        $(textCont).find('a').attr('target', '_blank').on('click', entryOnClick)
     } else {
         textCont.innerText = (e.text || '').trim()
     }
