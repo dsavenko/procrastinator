@@ -455,8 +455,14 @@ function setEntry(e, noPrevious, noCache) {
     } else {
         textCont.innerText = (e.text || '').trim()
     }
-    if (isRealUrl(e.imageUrl) && 0 == $(textCont).find('img').length) {
-        $(imageCont).append($('<img/>').attr('src', e.imageUrl))
+    const images = $(textCont).find('img')
+    let imageSrc = e.imageUrl
+    if (0 < images.length) {
+        imageSrc = images.attr('src')
+        images.filter(function() { return $(this).attr('src') === imageSrc }).remove()
+    }
+    if (isRealUrl(imageSrc)) {
+        $(imageCont).append($('<img/>').attr('src', imageSrc))
     }
     sourceTitle.innerText = e.sourceName || ''
     if (textCont.offsetHeight <= textContSizeChecker.offsetHeight) {
