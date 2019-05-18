@@ -1143,8 +1143,18 @@ function procAlert(msgKey, param) {
     alertCont.removeClass('alert-cont-prototype hidden')
 }
 
-function scrollEntry(y) {
-    entryBut.scrollTop += y
+function scrollEntry(y, isAbsoluteValue) {
+    if (isAbsoluteValue) {
+        const normY = 0 <= y ? y : entryBut.scrollHeight
+        entryBut.scrollTo(0, normY)
+    } else {
+        entryBut.scrollTop += y
+    }
+}
+
+function scrollEntryPage(n) {
+    const pageY = entryBut.clientHeight - 20
+    scrollEntry(pageY * n)
 }
 
 function registerKeyboardEvents() {
@@ -1163,11 +1173,29 @@ function registerKeyboardEvents() {
     })
     document.addEventListener('keydown', e => {
         switch (e.which) {
+            case 33:
+                scrollEntryPage(-1)
+                break
+            case 34:
+                scrollEntryPage(1)
+                break
             case 38:
-                scrollEntry(-50)
+                if (e.metaKey) {
+                    scrollEntry(0, true)
+                } else if (e.altKey) {
+                    scrollEntryPage(-1)
+                } else {
+                    scrollEntry(-50)
+                }
                 break
             case 40:
-                scrollEntry(50)
+                if (e.metaKey) {
+                    scrollEntry(-1, true)
+                } else if (e.altKey) {
+                    scrollEntryPage(1)
+                } else {
+                    scrollEntry(50)
+                }
                 break
         }
     })
