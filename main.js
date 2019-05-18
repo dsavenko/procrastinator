@@ -1157,8 +1157,15 @@ function scrollEntryPage(n) {
     scrollEntry(pageY * n)
 }
 
+function isActiveInput() {
+    return document.activeElement && $(document.activeElement).is('input, textarea')
+}
+
 function registerKeyboardEvents() {
     document.addEventListener('keyup', e => {
+        if (isActiveInput()) {
+            return
+        }
         switch (e.which) {
             case 8:
                 onPreviousButClick()
@@ -1172,6 +1179,9 @@ function registerKeyboardEvents() {
         }
     })
     document.addEventListener('keydown', e => {
+        if (isActiveInput()) {
+            return
+        }
         switch (e.which) {
             case 33:
                 scrollEntryPage(-1)
