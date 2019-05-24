@@ -97,11 +97,15 @@ const MAX_ENTRIES_PER_SOURCE = 20
 const CHARSET_RGX = /charset=([^()<>@,;:\"/[\]?.=\s]*)/i
 const RSS_MARKER_RGX = /<\s*rss /i
 
+const SOURCE_URL_PARAM = 's'
+const ENTRY_URL_PARAM = 'e'
+
 const virtualDocument = document.implementation.createHTMLDocument('virtual')
 
 let entries = []
 let previousEntry
 let currentEntry = {}
+let showFirst = null
 let sources = []
 let delMode = false
 let loadingSources = []
@@ -372,11 +376,15 @@ async function addEntries(sourceName, newEntries) {
     if (!isSourceOn(sourceName)) {
         return
     }
+    let showFirstEntry = showFirst ? newEntries.find(e => e.url === showFirst.url) : null
     // filter before syncing to sync less
     let filteredEntries = filterEntries(newEntries)
     await syncShown(filteredEntries)
     // filter again after syncing, and crop
     filteredEntries = filterEntries(filteredEntries).slice(0, MAX_ENTRIES_PER_SOURCE)
+    if (showFirstEntry) {
+        filteredEntries.push(showFirstEntry)
+    }
     const old = entries.length
     entries = entries.concat(filteredEntries)
     shuffle(entries)
@@ -495,12 +503,38 @@ function setEntry(e, noPrevious, noCache) {
     } else {
         hidePocketBut()
     }
+    const source = findSource(currentEntry.sourceName)
+    if (source && isRealUrl(currentEntry.url)) {
+        const newLoc = new URL(window.location.href)
+        newLoc.searchParams.delete(SOURCE_URL_PARAM)
+        newLoc.searchParams.delete(ENTRY_URL_PARAM)
+        let newSearch = newLoc.search
+        // preserving the parameters order here
+        newLoc.searchParams.set(SOURCE_URL_PARAM, source.url)
+        newSearch = newLoc.search
+        newSearch += `&${ENTRY_URL_PARAM}=${encodeURIComponent(currentEntry.url)}`
+        history.replaceState('', document.title, window.location.pathname + newSearch)
+    }
     if (!noCache && isRealUrl(currentEntry.url)) {
         setTimeout(() => saveCache())
     }
 }
 
 function pickEntry() {
+    if (showFirst) {
+        const source = showFirst.source
+        const ind = entries.findIndex(e => e.url === showFirst.url)
+        if (-1 < ind) {
+            showFirst = null
+            return entries.splice(ind, 1)[0]
+        } else if (loadingSources.includes(source.name)) {
+            return loadingEntry()
+        } else {
+            // last resort: redirect the user to the link itself
+            window.open(showFirst.url, '_self')
+            return loadingEntry()
+        }
+    }
     if (0 >= entries.length) {
         return 0 >= loadingSources.length ? nothingEntry() : loadingEntry()
     } else {
@@ -681,8 +715,52 @@ function loadCache() {
             entries = cache.entries
         }
         if (cache.currentEntry) {
-            setEntry(cache.currentEntry, true, true)
+            entries.unshift(cache.currentEntry)
         }
+    }
+}
+
+function generateSourceName(sourceUrl) {
+    let name = new URL(sourceUrl).hostname
+    if (name) {
+        name = name.charAt(0).toUpperCase() + name.slice(1)
+    } else {
+        name = $.i18n('unnamed-source-name')
+    }
+    let ret = name
+    let i = 1
+    while(findSource(ret)) {
+        ret = `${name}-${i++}`
+    }
+    return ret
+}
+
+function loadEntryFromLocation() {
+    const loc = new URL(window.location.href)
+    const sourceUrl = loc.searchParams.get(SOURCE_URL_PARAM)
+    const entryUrl = loc.searchParams.get(ENTRY_URL_PARAM)
+    if (sourceUrl && entryUrl) {
+        if (currentEntry && currentEntry.url === entryUrl) {
+            return
+        }
+        const ind = entries.findIndex(e => e.url === entryUrl)
+        if (-1 < ind) {
+            setEntry(entries[ind], true, true)
+            entries.splice(ind, 1)
+            return
+        }
+        setEntry(loadingEntry())
+        let source = sources.find(s => s.url === sourceUrl)
+        if (source) {
+            source.on = true
+        } else {
+            source = {name: generateSourceName(sourceUrl), on: true, url: sourceUrl}
+            sources.push(source)
+        }
+        saveSources()
+        syncSourcesUI()
+        showFirst = {url: entryUrl, source: source}
+        loadSource(source)
     }
 }
 
@@ -1113,7 +1191,7 @@ function onPocketButClick() {
 }
 
 function removeHash () { 
-    history.pushState('', document.title, window.location.pathname + window.location.search)
+    history.replaceState('', document.title, window.location.pathname + window.location.search)
 }
 
 function gaw(action, category) {
@@ -1242,6 +1320,7 @@ async function initApp(args) {
     applyLocale()
     syncSourcesUI()
     loadCache()
+    loadEntryFromLocation()
     loadEntries()
     hideSplash()
     await syncSourcesId()

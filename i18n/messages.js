@@ -9,6 +9,7 @@ const PROC_MESSAGES = {
         'reset-btn': 'Reset',
         'ok-btn': 'OK',
         'cancel-btn': 'Cancel',
+        'unnamed-source-name': 'Unnamed',
 
         'name-placeholder': 'Name',
         'name-hint': 'unique, up to 20 chars',
@@ -74,6 +75,7 @@ const PROC_MESSAGES = {
         'reset-btn': 'Сбросить',
         'ok-btn': 'OK',
         'cancel-btn': 'Отмена',
+        'unnamed-source-name': 'Без имени',
 
         'name-placeholder': 'Имя',
         'name-hint': 'уникальное, до 20 знаков',
