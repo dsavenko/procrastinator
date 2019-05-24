@@ -778,8 +778,12 @@ async function downloadRemoteSources(doNotRestore) {
     }
 }
 
-async function loadSources() {
-    sources = load(SOURCES_STORAGE_KEY) || await getUserPreferredSources()
+async function loadSources() {    
+    sources = load(SOURCES_STORAGE_KEY)
+    if (!sources) {
+        sources = await getUserPreferredSources()
+        saveSources()
+    }
 }
 
 function isSourcesEqual(sources1, sources2) {
