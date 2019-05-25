@@ -97,8 +97,10 @@ const MAX_ENTRIES_PER_SOURCE = 20
 const CHARSET_RGX = /charset=([^()<>@,;:\"/[\]?.=\s]*)/i
 const RSS_MARKER_RGX = /<\s*rss /i
 
-const SOURCE_URL_PARAM = 's'
 const ENTRY_URL_PARAM = 'e'
+const ENTRY_URL_DELIM = '|'
+const HTTPS_PREFIX = 'https://'
+const SCHEMA_PATTERN = /^https?:\/\//i
 
 const virtualDocument = document.implementation.createHTMLDocument('virtual')
 
@@ -452,6 +454,15 @@ function entryOnClick(e) {
     }
 }
 
+function commonPrefixPos(s1, s2) {
+    const len = Math.min(s1.length, s2.length)
+    let ret = 0
+    while (ret < len && s1.charAt(ret) === s2.charAt(ret)) {
+        ++ret
+    }
+    return ret
+}
+
 function setEntry(e, noPrevious, noCache) {
     clearAllAlerts()
     e = e || {}
@@ -506,14 +517,15 @@ function setEntry(e, noPrevious, noCache) {
     const source = findSource(currentEntry.sourceName)
     if (source && isRealUrl(currentEntry.url)) {
         const newLoc = new URL(window.location.href)
-        newLoc.searchParams.delete(SOURCE_URL_PARAM)
-        newLoc.searchParams.delete(ENTRY_URL_PARAM)
-        let newSearch = newLoc.search
-        // preserving the parameters order here
-        newLoc.searchParams.set(SOURCE_URL_PARAM, source.url)
-        newSearch = newLoc.search
-        newSearch += `&${ENTRY_URL_PARAM}=${encodeURIComponent(currentEntry.url)}`
-        history.replaceState('', document.title, window.location.pathname + newSearch)
+        const i = commonPrefixPos(source.url, currentEntry.url)
+        let prefix = source.url.substring(0, i).toLowerCase()
+        if (prefix.startsWith(HTTPS_PREFIX)) {
+            prefix = prefix.substring(HTTPS_PREFIX.length)
+        }
+        const param = prefix + ENTRY_URL_DELIM + source.url.substring(i) +
+            ENTRY_URL_DELIM + currentEntry.url.substring(i)
+        newLoc.searchParams.set(ENTRY_URL_PARAM, param)
+        history.replaceState('', document.title, window.location.pathname + newLoc.search)
     }
     if (!noCache && isRealUrl(currentEntry.url)) {
         setTimeout(() => saveCache())
@@ -737,8 +749,13 @@ function generateSourceName(sourceUrl) {
 
 function loadEntryFromLocation() {
     const loc = new URL(window.location.href)
-    const sourceUrl = loc.searchParams.get(SOURCE_URL_PARAM)
-    const entryUrl = loc.searchParams.get(ENTRY_URL_PARAM)
+    const tmp = (loc.searchParams.get(ENTRY_URL_PARAM) || '').split(ENTRY_URL_DELIM)
+    if (3 > tmp.length) {
+        return
+    }
+    const prefix = SCHEMA_PATTERN.test(tmp[0]) ? tmp[0] : HTTPS_PREFIX + tmp[0]
+    const sourceUrl = prefix + tmp[1]
+    const entryUrl = prefix + tmp[2]
     if (sourceUrl && entryUrl) {
         if (currentEntry && currentEntry.url === entryUrl) {
             return
