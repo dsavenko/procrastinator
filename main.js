@@ -99,8 +99,6 @@ const RSS_MARKER_RGX = /<\s*rss /i
 
 const ENTRY_URL_PARAM = 'e'
 const ENTRY_URL_DELIM = '|'
-const HTTPS_PREFIX = 'https://'
-const SCHEMA_PATTERN = /^https?:\/\//i
 
 const virtualDocument = document.implementation.createHTMLDocument('virtual')
 
@@ -518,11 +516,7 @@ function setEntry(e, noPrevious, noCache) {
     if (source && isRealUrl(currentEntry.url)) {
         const newLoc = new URL(window.location.href)
         const i = commonPrefixPos(source.url, currentEntry.url)
-        let prefix = source.url.substring(0, i).toLowerCase()
-        if (prefix.startsWith(HTTPS_PREFIX)) {
-            prefix = prefix.substring(HTTPS_PREFIX.length)
-        }
-        const param = prefix + ENTRY_URL_DELIM + source.url.substring(i) +
+        const param = source.url.substring(0, i) + ENTRY_URL_DELIM + source.url.substring(i) +
             ENTRY_URL_DELIM + currentEntry.url.substring(i)
         newLoc.searchParams.set(ENTRY_URL_PARAM, param)
         history.replaceState('', document.title, window.location.pathname + newLoc.search)
@@ -741,7 +735,7 @@ function generateSourceName(sourceUrl) {
     }
     let ret = name
     let i = 1
-    while(findSource(ret)) {
+    while (findSource(ret)) {
         ret = `${name}-${i++}`
     }
     return ret
@@ -753,9 +747,8 @@ function loadEntryFromLocation() {
     if (3 > tmp.length) {
         return
     }
-    const prefix = SCHEMA_PATTERN.test(tmp[0]) ? tmp[0] : HTTPS_PREFIX + tmp[0]
-    const sourceUrl = prefix + tmp[1]
-    const entryUrl = prefix + tmp[2]
+    const sourceUrl = tmp[0] + tmp[1]
+    const entryUrl = tmp[0] + tmp[2]
     if (sourceUrl && entryUrl) {
         if (currentEntry && currentEntry.url === entryUrl) {
             return
