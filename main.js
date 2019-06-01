@@ -139,7 +139,7 @@ function welcomeEntry() {
 }
 
 function shownHash(entry) {
-    return `shown-${md5(entry.url)}`
+    return `shown-${encodeURIComponent(entry.url)}`
 }
 
 async function prom(gapiCall, argObj) {
