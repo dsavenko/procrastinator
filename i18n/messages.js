@@ -50,7 +50,7 @@ const PROC_MESSAGES = {
         'name-exists-alert': 'This name is already used',
         'no-rss-addr-alert': 'Please, enter an RSS address',
         'rss-addr-exists-alert': 'This RSS address is already used for $1',
-        'reset-confirm': 'Set up sources again? All your changes will be lost.',
+        'reset-confirm': 'Set up sources from scratch? All your changes will be lost.',
         'delete-confirm': 'Delete $1?',
 
         'added-to-pocket-alert': 'Saved to Pocket',
@@ -116,7 +116,7 @@ const PROC_MESSAGES = {
         'name-exists-alert': 'Это имя уже используется',
         'no-rss-addr-alert': 'Пожалуйста, введите адрес RSS',
         'rss-addr-exists-alert': 'Этот адрес уже используется для $1',
-        'reset-confirm': 'Настроить источники снова? Все ваши изменения буду утеряны.',
+        'reset-confirm': 'Перенастроить источники? Все ваши изменения буду утеряны.',
         'delete-confirm': 'Удалить $1?',
 
         'added-to-pocket-alert': 'Сохранил в Pocket',

@@ -40,6 +40,7 @@ const CATEGORIES_RU = {
     fun: [
         {name: 'AdMe', on: true, url: 'https://www.adme.ru/rss/'},
         {name: 'Fishki.net', on: true, url: 'https://fishki.net/rss/'},
+        {name: 'Панорама', on: true, url: 'https://panorama.pub/feed'},
     ]
 }
 const CATEGORIES_EN = {
