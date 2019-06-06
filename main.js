@@ -869,7 +869,7 @@ async function downloadRemoteSources(doNotRestore) {
 async function loadSources() {    
     sources = load(SOURCES_STORAGE_KEY)
     if (!sources) {
-        sources = await getUserPreferredSources()
+        sources = getDefaultSources()
         saveSources()
     }
 }
@@ -1003,6 +1003,11 @@ async function getUserPreferredSources(showCancel) {
     const catsOn = await showCategoryDialog(showCancel)
     const cats = $.i18n().locale.startsWith('ru') ? CATEGORIES_RU : CATEGORIES_EN
     return catsOn.reduce((acc, name) => acc.concat(cats[name]), [])
+}
+
+function getDefaultSources() {
+    const cats = $.i18n().locale.startsWith('ru') ? CATEGORIES_RU : CATEGORIES_EN
+    return CATEGORIES.reduce((acc, name) => acc.concat(cats[name]), [])
 }
 
 async function doResetSources() {
