@@ -92,8 +92,15 @@ const MAX_NAME_LEN = 20
 const CONFIG_STORAGE_KEY = 'config'
 const SOURCES_STORAGE_KEY = 'sources'
 const CACHE_STORAGE_KEY = 'cache'
-const SYNC_PERIOD = 1000 * 60 * 5 // 5 min
-const MIN_ALERT_INTERVAL = 1000 * 60 * 60 * 2 // 2 hours
+
+const SECOND = 1000
+const MINUTE = 60 * SECOND
+const HOUR = 60 * MINUTE
+
+const SYNC_PERIOD = 5 * MINUTE
+const AFK_PERIOD = 30 * MINUTE
+const MIN_ALERT_INTERVAL = 2 * HOUR
+
 const MAX_ENTRIES_PER_SOURCE = 20
 const CHARSET_RGX = /charset=([^()<>@,;:\"/[\]?.=\s]*)/i
 const RSS_MARKER_RGX = /<\s*rss /i
@@ -106,6 +113,7 @@ const virtualDocument = document.implementation.createHTMLDocument('virtual')
 let entries = []
 let previousEntry
 let currentEntry = {}
+let currentEntrySetTime = new Date()
 let showFirst = null
 let sources = []
 let delMode = false
@@ -508,6 +516,12 @@ function setEntry(e, noPrevious, noCache) {
     }
     $(moreBut).text($.i18n(e.checkAgain ? 'check-again-btn' : 'more-btn'))
     currentEntry = e
+    const now = new Date()
+    if (now - currentEntrySetTime > AFK_PERIOD) {
+        // the user was AFK for a long time, we should refresh entries
+        setTimeout(loadEntries, 0)
+    }
+    currentEntrySetTime = now
     if (isRealUrl(currentEntry.url)) {
         $(pocketBut).removeClass('invisible')
     } else {
