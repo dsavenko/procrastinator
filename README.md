@@ -1,4 +1,4 @@
-## Hi, this is Procrastinator!
+## Hi, this is Procrastinator! Very Best Amazing Project!
 
 **[Procrastinator](https://procrastinator.one)** gathers news and articles from other resources and shows them one by one.
 
