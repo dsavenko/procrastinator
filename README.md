@@ -8,5 +8,5 @@ You can change information sources. There are some presets, but you can add any 
 
 **Discontinued**
 
-The Web version of Procrastinator is discontinued and replaced with the [mobile application](/).
+The Web version of Procrastinator is discontinued and replaced with the [mobile application](https://dsavenko.com).
 
