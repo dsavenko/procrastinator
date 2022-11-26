@@ -1,0 +1,47 @@
+body, p {
+    font: 16px/26px 'Droid Serif', Georgia, serif;
+}
+
+h1, h2, h3, h4, h5, h6, button {
+    font-family: 'Open Sans', 'Helvetica Neue', Helvetica, sans-serif;
+}
+
+.ds-social > i {
+    margin-right: 1px;
+}
+
+h4 > a {
+    text-decoration: none;
+}
+
+blockquote {
+  border-left: 3px solid #ccc;
+  margin: 1.5em 10px;
+  padding: 0.5em 10px;
+}
+
+blockquote p {
+  display: inline;
+  font-family: 'Open Sans', 'Helvetica Neue', Helvetica, sans-serif;
+  font-style: italic;
+}
+
+.post img {
+  margin: 0.5em auto;
+  display: block;
+  height: auto;
+  max-width: 100%;
+  border: 1px solid #ccc;
+}
+
+@media only screen and (min-width: 720px) {
+  .post img {
+    max-width: 80%;
+  }
+} 
+
+.date {
+  font-style: italic;
+  color: #888;
+  font-size: smaller;
+}

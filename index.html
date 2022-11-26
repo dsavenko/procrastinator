@@ -2,378 +2,73 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title data-i18n="title">Procrastinator</title>
-    <meta name="description" content="News aggregator and online RSS reader with unusual UI">
+    <title>Procrastinator</title>
+    <meta name="description" content="News aggregator and RSS reader with unusual UI">
+    <meta name="author" content="dsavenko">
     <meta property="og:site_name" content="Procrastinator">
     <meta property="og:title" content="Welcome">
     <meta property="og:description" content="Procrastinator is a news aggregator for you to take a break from time to time.">
     <meta name="og:title" property="og:title" content="Procrastinator">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <link rel="shortcut icon" href="favicon.ico">
-    <style>
-        html {
-            padding: 0;
-            margin: 0;
-            box-sizing: border-box;
-            height: 100%;
-        }
-        body {
-            color: #111;
-            background-color: #fff;
-            font-family: "Helvetica Neue", Arial, sans-serif;
-            padding: 0;
-            margin: 0;
-            box-sizing: border-box;
-            height: 100%;
-        }
-        .flex {
-            display: flex;
-        }
-        .flex.center {
-            justify-content: center;
-        }
-        .flex.evenly {
-            justify-content: space-evenly;
-        }
-        .flex.start {
-            align-items: flex-start;
-        }
-        .flex.middle {
-            align-items: center;
-        }
-        .flex.stretch {
-            align-items: stretch;
-        }
-        .flex.wrap {
-            flex-wrap: wrap;
-        }
-        .flex.column {
-            flex-direction: column;
-        }
-        .pointer {
-            cursor: pointer;
-        }
-        .ribbon {
-            margin: 0;
-            color: #fff;
-            background-color: #FF4136;
-            -webkit-touch-callout: none; /* iOS Safari */
-            -webkit-user-select: none; /* Safari */
-            -khtml-user-select: none; /* Konqueror HTML */
-            -moz-user-select: none; /* Firefox */
-            -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; 
-            flex-shrink: 0;
-        }
-        .ribbon > div {
-            padding: 0.8em;
-            font-size: 1.2em;
-            cursor: pointer;
-        }
-        .ribbon.center {
-            justify-content: center;
-        }
-        .more {
-            flex-grow: 1;
-            letter-spacing: 0.2em;
-            text-align: center;
-            overflow: hidden;
-            white-space: nowrap;
-        }
-        .source-title {
-            flex-grow: 1;
-            text-align: center;
-            overflow: hidden;
-            white-space: nowrap;
-        }
-        .alert {
-            flex-grow: 1;
-            text-align: center;
-            overflow: hidden;
-        }
-        .alert-cont {
-            opacity: 0.8;
-        }
-        .ribbon img {
-            height: 1em;
-        }
-        .entry {
-            max-width: 50em;
-            margin: 0 auto;
-        }
-        .title {
-            padding: 0.5em;
-            font-size: 1.2em;
-            text-align: center;
-            font-weight: bold;
-        }
-        .img {
-            text-align: center;
-        }
-        .img img, .text img {
-            max-width: 100%;
-            max-height: 20em;
-        }
-        .text {
-            padding: 0.5em;
-        }
-        .text.center {
-            text-align: center;
-        }
-        .text.right {
-            text-align: right;
-        }
-        .text.faded {
-            color: rgba(255, 65, 24, 0.3);
-        }
-        .text.italic {
-            font-style: italic;
-        }
-        .invisible {
-            visibility: hidden;
-        }
-        .hidden {
-            display: none !important;
-        }
-        img.checkbox {
-            margin-right: 0.3em;
-        }
-        .full-space {
-            min-width: 100%;
-            max-width: 100%;
-            min-height: 100%;
-            max-height: 100%;
-            flex-grow: 1;
-        }
-        .grow {
-            flex-grow: 1;
-        }
-        .overflow {
-            overflow: auto;
-        }
-        .smooth-scroll {
-            scroll-behavior: smooth;
-        }
-        input {
-            font-family: "Helvetica Neue", Arial, sans-serif;
-            font-size: 0.9em;
-        }
-        .enabled {
-            background-color: rgba(255, 255, 255, 0.3);
-        }
-        .dialog {
-            background-color: #FF4136;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 1000;
-            color: #fff;
-            display: flex;
-            justify-content: space-around;
-            font-size: 2em;
-            align-items: stretch;
-            -webkit-touch-callout: none; /* iOS Safari */
-            -webkit-user-select: none; /* Safari */
-            -khtml-user-select: none; /* Konqueror HTML */
-            -moz-user-select: none; /* Firefox */
-            -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; 
-        }
-        .dialog > div {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            text-align: center;
-            margin: 0.2em;
-        }
-        #splash {
-            background-color: #FF4136;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 900;
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 4em;
-            -webkit-touch-callout: none; /* iOS Safari */
-            -webkit-user-select: none; /* Safari */
-            -khtml-user-select: none; /* Konqueror HTML */
-            -moz-user-select: none; /* Firefox */
-            -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; 
-        }
-        @keyframes heartbeat {
-          0%
-          {
-            transform: scale( .75 );
-          }
-          20%
-          {
-            transform: scale( 1 );
-          }
-          40%
-          {
-            transform: scale( .75 );
-          }
-          60%
-          {
-            transform: scale( 1 );
-          }
-          80%
-          {
-            transform: scale( .75 );
-          }
-          100%
-          {
-            transform: scale( .75 );
-          }
-        }        
-        .pulsate {
-            animation: heartbeat 1s infinite;
-        }
-        .hint {
-            font-size: smaller;
-        }
-        .input-field > input {
-            width: 100%;
-        }
-        .unsupported {
-            position: fixed;
-            top: 0px;
-            left: 0px;
-            z-index: 3000;
-            height: 100%;
-            width: 100%;
-            background-color: #fff;
-            text-align: center;
-        }
-    </style>
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-131902348-1"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'UA-131902348-1');
-    </script>    
+
+    <link href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=Droid+Serif|Open+Sans&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/skeleton.css">
+    <link rel="stylesheet" href="css/custom.css">
+    <link rel="stylesheet" href="css/procrastinator.css">
 </head>
 <body>
-    <noscript>
-        <div class="unsupported">
-            <h3>Для работы нужен JavaScript :(</h3>
-            <p>Включите его, пожалуйста. Это зло, но это неизбежное зло.</p>
-            <hr>
-            <h3>Need JavaScript to work properly :(</h3>
-            <p>Please, turn it on. It's an evil, but a necessary evil.</p>
-        </div>
-    </noscript>
-    <div id="unsupportedBrowser" class="unsupported hidden">
-        <h3>Слишком старый браузер :(</h3>
-        <p>Ваш браузер не поддерживает кое-каких нужных вещей. Пожалуйста, обновите его.</p>
-        <hr>
-        <h3>Browser is too old :(</h3>
-        <p>Your browser doesn't support some features I need. Please, update it.</p>
-    </div>
-    <div id="splash">
-        <div class="pulsate">П</div>
-    </div>
-    <div id="chooseLang" class="dialog flex column hidden">
-        <div id="chooseEnglishBut" class="grow pointer">In English</div>
-        <div id="chooseRussianBut" class="grow pointer">По-русски</div>
-    </div>
-    <div id="chooseCategories" class="dialog flex column hidden">
-    </div>
-    <div class="flex column full-space">
-        <div class="ribbon flex">
-            <div id="logoBut">
-                П
-            </div>
-            <div class="lang-cont invisible hidden">En</div> <!-- for symmetry -->
-            <div id="sourceTitle" class="source-title"></div>
-            <div id="langBut" class="lang-cont hidden"></div>
-            <div id="settingsBut">
-                <img src="settings.svg">
-            </div>
-        </div>
-        <div id="settingsCont" class="ribbon flex wrap center gear-menu hidden">
-        </div>
-        <div id="advancedCont" class="ribbon flex wrap center gear-menu hidden">
-            <div id="showAddBut" data-i18n="add-btn">Add</div>
-            <div id="deleteBut" data-i18n="delete-btn">Delete</div>
-            <div id="resetBut" data-i18n="reset-btn">Reset</div>
-        </div>
-        <div id="addCont" class="ribbon flex wrap center hidden">
-            <div class="input-field">
-                <input id="nameInput" type="text" data-i18n="[placeholder]name-placeholder" maxlength="20">
-                <div class="hint" data-i18n="name-hint"></div>
-            </div>
-            <div class="input-field">
-                <input id="urlInput" type="url" data-i18n="[placeholder]addr-placeholder">
-                <div class="hint" data-i18n="addr-hint"></div>
-            </div>
-            <div id="addBut" data-i18n="ok-btn">OK</div>
-        </div>
-        <div id="loginCont" class="ribbon flex wrap center gear-menu hidden">
-            <div id="googleBut">Log in via Google</div>
-        </div>
-        <div id="entryBut" class="full-space overflow pointer smooth-scroll" data-url="https://google.com">
-            <div class="entry">
-                <div id="titleCont" class="title">
-                    . . .
-                </div>
-                <div id="imageCont" class="img"></div>
-                <div id="textCont" class="text"></div>
-                <div id="textContSizeChecker" class="text invisible">0</div>
-            </div>
-        </div>
-        <div class="alert-cont-prototype ribbon flex hidden">
-            <div class="invisible">
-                <img src="previous.svg">
-            </div>
-            <div class="alert"></div>
-            <div class="alert-close">
-                <img src="trash.svg">
-            </div>
-        </div>
-        <div class="ribbon flex">
-            <div id="previousBut" class="invisible">
-                <img src="previous.svg">
-            </div>
-            <div id="moreBut" class="more" data-i18n="more-btn">
-            </div>
-            <div id="pocketBut" class="invisible">
-                <img src="pocket.svg">
-            </div>
-        </div>
-    </div>
-    <script src="jquery.min.js"></script>
-    <script src="compat.js"></script>
-    
-    <script src="rss-parser.min.js"></script>
-    <script src="https://apis.google.com/js/api.js"></script>
 
-    <!-- jquery.i18n v1.0.5 -->
-    <script src="i18n/CLDRPluralRuleParser.js"></script>
-    <script src="i18n/jquery.i18n.js"></script>
-    <script src="i18n/jquery.i18n.messagestore.js"></script>
-    <script src="i18n/jquery.i18n.fallbacks.js"></script>
-    <script src="i18n/jquery.i18n.parser.js"></script>
-    <script src="i18n/jquery.i18n.emitter.js"></script>
-    <script src="i18n/jquery.i18n.language.js"></script>
-    <script src="i18n/ru.js"></script>
-    <script src="i18n/messages.js"></script>
+<div class="container">
 
-    <script src="main.js"></script>
-    <script src="https://apis.google.com/js/api.js"
-      onload="this.onload=function(){}; gapi.load('client:auth2', initClient)"
-      onreadystatechange="if (this.readyState === 'complete') this.onload()">
-    </script>
+    <div class="row">
+        <div class="twelve columns" style="margin-top: 40px;">
+            <a href="index_ru.html" style="text-decoration: none">(in Russian / по-русски)</a>
+            <a style="text-decoration: none">
+                <h1>Procrastinator</h1>
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="twelve columns">
+            <p>
+                Procrastinator is a news reader application. It's lightweight and fast. It collects news and articles from different sources and shows you one by one. Without unnecessary details, advertising or wasting your time on anything besides the news.
+            </p>
+
+            <h2>Install</h2>
+            <p>
+                <a href="https://play.google.com/store/apps/details?id=com.dsavenko.procrastinator" target="_blank">Install from Google Play</a>.
+            </p>
+
+            <h2>Contacts</h2>
+            <p>
+                Procrastinator is made by <a href="https://dsavenko.com/"><b>dsavenko</b></a>.
+                Contact e-mail: <a href="mailto:ds@dsavenko.com">ds@dsavenko.com</a>.
+            </p>
+
+            <h2>Privacy policy</h2>
+            <p>
+                <a href="privacy-policy.html">Procrastinator privacy policy</a>.
+            </p>
+
+            <h2>Old version</h2>
+            <p>
+                Procrastinator started as a Web app. The Web version is now discontinued. Its source code is available <a href="https://github.com/dsavenko/procrastinator/tree/last-online-version" target="_blank">here</a>.
+            </p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    if (navigator.language.startsWith("ru") && !/index\.html$/.test(location.pathname)) {
+        location.href="index_ru.html"
+    }    
+</script>
+
 </body>
 </html>
